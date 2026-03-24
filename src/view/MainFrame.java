@@ -3,26 +3,27 @@ package view;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.Map;
 
 public class MainFrame extends JFrame {
 
-    // ── Colors ──────────────────────────────────
-    public static final Color BG_DEEP    = new Color(15,  15,  20);
-    public static final Color BG_PANEL   = new Color(22,  22,  30);
-    public static final Color BG_CARD    = new Color(26,  26,  38);
-    public static final Color BG_INPUT   = new Color(30,  30,  45);
-    public static final Color BORDER_CLR = new Color(42,  42,  62);
-    public static final Color ACCENT     = new Color(92,  92, 255);
-    public static final Color ACCENT2    = new Color(155, 92, 255);
-    public static final Color RED_BTN    = new Color(255, 75,  65);
-    public static final Color BLUE_BTN   = new Color(74, 144, 255);
-    public static final Color TXT_MAIN   = new Color(200, 200, 230);
-    public static final Color TXT_MUTED  = new Color(90,  90, 115);
-    public static final Color TXT_LABEL  = new Color(60,  60,  85);
+    // --- Colors ---
+    public static final Color BG_DEEP    = Color.WHITE;
+    public static final Color BG_PANEL   = new Color(245,245,245);
+    public static final Color BG_CARD    = Color.WHITE;
+    public static final Color BG_INPUT   = Color.WHITE;
 
-    // ── Child panels ──
+    public static final Color BORDER_CLR = new Color(210,210,210);
+
+    public static final Color ACCENT     = new Color(60,120,255);
+
+    public static final Color RED_BTN    = new Color(220,70,70);
+    public static final Color BLUE_BTN   = new Color(70,130,255);
+
+    public static final Color TXT_MAIN   = Color.BLACK;
+    public static final Color TXT_MUTED  = new Color(120,120,120);
+    public static final Color TXT_LABEL  = new Color(140,140,140);
+
+    // --- Child panels ---
     public final SelectorPanel selectorPanel;
     public final TextPanel     textPanel;
     public final FilePanel     filePanel;
@@ -66,23 +67,17 @@ public class MainFrame extends JFrame {
         setContentPane(root);
     }
 
+
     private JPanel buildTitleBar() {
         JPanel bar = new JPanel(new BorderLayout());
-        bar.setBackground(new Color(18, 18, 26));
+        bar.setBackground(BG_PANEL);
         bar.setBorder(new CompoundBorder(
             new MatteBorder(0, 0, 1, 0, BORDER_CLR),
             new EmptyBorder(10, 16, 10, 16)
         ));
 
-        // Traffic lights
-        JPanel dots = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        dots.setOpaque(false);
-        dots.add(makeDot(new Color(255, 95, 87)));
-        dots.add(makeDot(new Color(254, 188, 46)));
-        dots.add(makeDot(new Color(40, 200, 64)));
-
         // Title
-        JLabel title = new JLabel("  CIPHERTOOL  v1.0");
+        JLabel title = new JLabel("  CIPHERTOOL   ");
         title.setFont(new Font("Monospaced", Font.BOLD, 12));
         title.setForeground(TXT_MUTED);
 
@@ -93,13 +88,8 @@ public class MainFrame extends JFrame {
         dot.setPreferredSize(new Dimension(7, 7));
         dot.setBackground(new Color(40, 200, 64));
         dot.setBorder(new LineBorder(new Color(40, 200, 64).darker(), 1));
-        JLabel rdy = new JLabel("Ready");
-        rdy.setFont(new Font("Monospaced", Font.PLAIN, 11));
-        rdy.setForeground(TXT_MUTED);
         status.add(dot);
-        status.add(rdy);
 
-        bar.add(dots, BorderLayout.WEST);
         bar.add(title, BorderLayout.CENTER);
         bar.add(status, BorderLayout.EAST);
         return bar;
@@ -147,7 +137,7 @@ public class MainFrame extends JFrame {
             }
             @Override protected void paintTabBackground(Graphics g, int tp2, int idx,
                     int x, int y, int w, int h, boolean sel) {
-                g.setColor(sel ? BG_PANEL : new Color(18, 18, 26));
+                g.setColor(sel ? BG_PANEL : Color.WHITE);
                 g.fillRect(x, y, w, h);
             }
             @Override protected void paintTabBorder(Graphics g, int tp2, int idx,
@@ -188,7 +178,7 @@ public class MainFrame extends JFrame {
         ta.setBackground(BG_INPUT);
         ta.setForeground(TXT_MAIN);
         ta.setCaretColor(ACCENT);
-        ta.setSelectionColor(new Color(92, 92, 255, 60));
+        ta.setSelectionColor(new Color(60,120,255,80));
         ta.setLineWrap(true);
         ta.setWrapStyleWord(true);
         ta.setBorder(new EmptyBorder(12, 12, 12, 12));

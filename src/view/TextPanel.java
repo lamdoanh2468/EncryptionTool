@@ -26,16 +26,16 @@ public class TextPanel extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
 
         // Left textarea
-        inputArea = MainFrame.makeTextArea("Nhập văn bản cần mã hóa / giải mã...");
+        inputArea = MainFrame.makeTextArea("Input text");
         JScrollPane leftScroll = MainFrame.scrollWrap(inputArea);
 
         // Middle buttons
         JPanel midPanel = buildMidPanel();
 
         // Right textarea
-        outputArea = MainFrame.makeTextArea("Kết quả sẽ hiện ở đây...");
+        outputArea = MainFrame.makeTextArea("Result");
         outputArea.setEditable(false);
-        outputArea.setBackground(new Color(20, 20, 32));
+        outputArea.setBackground(Color.WHITE);
         JScrollPane rightScroll = MainFrame.scrollWrap(outputArea);
 
         gbc.fill = GridBagConstraints.BOTH;
@@ -117,7 +117,7 @@ public class TextPanel extends JPanel {
         bar.setBorder(new EmptyBorder(8, 2, 0, 2));
 
         charCountLabel = new JLabel("0 ký tự");
-        charCountLabel.setFont(new Font("Monospaced", Font.PLAIN, 10));
+        charCountLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         charCountLabel.setForeground(MainFrame.TXT_LABEL);
 
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));

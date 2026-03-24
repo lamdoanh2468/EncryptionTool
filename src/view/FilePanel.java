@@ -24,21 +24,21 @@ public class FilePanel extends JPanel {
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(16, 0, 0, 0));
 
-        // ── Drop zone ────────────────────────────
+        // --- Drop zone ---
         dropZone = buildDropZone();
         add(dropZone, BorderLayout.CENTER);
 
-        // ── File info bar ────────────────────────
+        // --- File info bar ---
         fileNameLabel = new JLabel("Chưa chọn file");
         fileNameLabel.setFont(new Font("Monospaced", Font.PLAIN, 12));
         fileNameLabel.setForeground(MainFrame.TXT_MUTED);
         fileNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(fileNameLabel, BorderLayout.NORTH);
 
-        // ── Action bar ───────────────────────────
+        // --- Action bar ---
         add(buildActionBar(), BorderLayout.SOUTH);
 
-        // ── Drag-and-drop ────────────────────────
+        // --- Drag and drop ---
         new DropTarget(dropZone, new DropTargetListener() {
             public void dragEnter(DropTargetDragEvent e)  { dropZone.setBorder(glowBorder()); }
             public void dragExit(DropTargetEvent e)        { dropZone.setBorder(dashedBorder()); }
@@ -128,9 +128,9 @@ public class FilePanel extends JPanel {
         chooseBtn.setPreferredSize(new Dimension(0, 44));
         chooseBtn.addActionListener(e -> openFileChooser());
 
-        encryptFileBtn = MainFrame.makeButton("Mã Hóa  ▶", MainFrame.RED_BTN, Color.WHITE);
+        encryptFileBtn = MainFrame.makeButton("Mã Hóa ▶", MainFrame.RED_BTN, Color.WHITE);
         encryptFileBtn.setEnabled(false);
-        decryptFileBtn = MainFrame.makeButton("◀  Giải Mã", MainFrame.BLUE_BTN, Color.WHITE);
+        decryptFileBtn = MainFrame.makeButton("◀ Giải Mã", MainFrame.BLUE_BTN, Color.WHITE);
         decryptFileBtn.setEnabled(false);
 
         bar.add(chooseBtn);
