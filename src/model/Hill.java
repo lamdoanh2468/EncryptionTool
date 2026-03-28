@@ -80,7 +80,7 @@ public class Hill {
         return result.toString();
     }
 
-    //===DECRYPTION ===
+    // ===DECRYPTION ===
     public String decrypt(String text, int[][] key) {
 
         text = text.toLowerCase().replaceAll("[^a-z]", "");
@@ -95,13 +95,14 @@ public class Hill {
                 int firstCipher = text.charAt(i) - 'a';
                 int secondCipher = text.charAt(i + 1) - 'a';
 
-
                 int firstPlain = (inverseKey[0][0] * firstCipher + inverseKey[0][1] * secondCipher) % 26;
                 int secondPlain = (inverseKey[1][0] * firstCipher + inverseKey[1][1] * secondCipher) % 26;
 
                 // <<< Prevent minus value >>>
-                if (firstPlain < 0) firstPlain += 26;
-                if (secondPlain < 0) secondPlain += 26;
+                if (firstPlain < 0)
+                    firstPlain += 26;
+                if (secondPlain < 0)
+                    secondPlain += 26;
 
                 result.append((char) (firstPlain + 'a'));
                 result.append((char) (secondPlain + 'a'));
@@ -113,4 +114,3 @@ public class Hill {
     }
 
 }
-

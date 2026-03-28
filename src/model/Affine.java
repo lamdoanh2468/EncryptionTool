@@ -1,24 +1,25 @@
 package model;
 
-import javax.crypto.*;
-import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 
-public class Affine {
+public class Affine implements ITextCipher<int[]> {
+    private static final int[] VALID_A = {1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25};
 
-    public SecretKey key;
+    private int[] currentKey;
 
-    public SecretKey genKey() throws NoSuchAlgorithmException {
-
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
-        keyGenerator.init(56);
-        key = keyGenerator.generateKey();
-        return key;
+    @Override
+    public int[] genKey() {
+        Random rand = new Random();
+        int a = VALID_A[rand.nextInt(VALID_A.length)];
+        int b = rand.nextInt(26);
+        currentKey = new int[]{a, b};
+        return currentKey;
     }
 
-    public void loadKey(SecretKey key) {
-
+    @Override
+    public void loadKey(int[] key) {
+        this.currentKey = key;
     }
-
 
     public int gcd(int a, int b) {
         while (b != 0) {
@@ -38,10 +39,16 @@ public class Affine {
         return -1;
     }
 
-    public String encrypt(String text, int a, int b) {
-        if (text == null) text = "";
+    public String encrypt(String text, int[] key) {
+        if (text == null)
+            text = "";
+
+        // --- Load key ---
+        int a = key[0];
+        int b = key[1];
+
         StringBuilder result = new StringBuilder();
-        if (gcd(a, 26) != 1) {        // Check GCD (a,n) == 1
+        if (gcd(a, 26) != 1) { // Check GCD (a,n) == 1
             return "Invalid key";
         }
 
@@ -61,12 +68,18 @@ public class Affine {
         return result.toString();
     }
 
-    //===DECRYPTION ===
-    public String decrypt(String text, int a, int b) {
-        // logic giải mã
-        if (text == null) text = "";
+    // ===DECRYPTION ===
+    public String decrypt(String text, int[] key) {
+
+        if (text == null)
+            text = "";
+
+        // --- Load key ---
+        int a = key[0];
+        int b = key[1];
+
         StringBuilder result = new StringBuilder();
-        if (gcd(a, 26) != 1) {        // Check GCD (a,n) == 1
+        if (gcd(a, 26) != 1) { // Check GCD (a,n) == 1
             return "Invalid key";
         }
         int a_1 = modInverse(a, 26);
@@ -86,9 +99,5 @@ public class Affine {
         }
         return result.toString();
 
-    }
-
-    static void main() {
-        System.out.println(new Affine().decrypt("Vuc btp tr", 3, 7));
     }
 }

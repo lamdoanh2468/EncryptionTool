@@ -55,5 +55,4 @@ public class Vigenere {
         return result.toString();
     }
 
-
 }

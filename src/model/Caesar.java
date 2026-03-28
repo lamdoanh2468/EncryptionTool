@@ -4,7 +4,8 @@ public class Caesar {
 
     // === ENCRYPTION ===
     public String encrypt(String text, int key) {
-        if (text == null) text = "";
+        if (text == null)
+            text = "";
         int k = ((key % 26) + 26) % 26;
         StringBuilder result = new StringBuilder();
         char[] divText = text.toCharArray();
@@ -23,10 +24,11 @@ public class Caesar {
         return result.toString();
     }
 
-    //===DECRYPTION ===
+    // ===DECRYPTION ===
     public String decrypt(String text, int key) {
         // logic giải mã
-        if (text == null) text = "";
+        if (text == null)
+            text = "";
         int k = ((key % 26) + 26) % 26;
         StringBuilder result = new StringBuilder();
         char[] divText = text.toCharArray();
