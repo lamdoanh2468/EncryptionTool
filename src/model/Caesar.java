@@ -1,11 +1,93 @@
 package model;
 
-public class Caesar {
+import java.util.Random;
+
+public class Caesar implements ITextCipher<Integer> {
+
+    // --- Add Vietnamese alphabet ---
+    private static final String VN_ALPHABET_LOWER = "aáàảãạăắằẳẵặâấầẩẫậbcdđeéèẻẽẹêếềểễệfghiíìỉĩịjklmnoóòỏõọôốồổỗộơớờởỡợpqrstuúùủũụưứừửữựvwxyýỳỷỹỵ";
+
+    private static final String VN_ALPHABET_UPPER = "AÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬBCDĐEÉÈẺẼẸÊẾỀỂỄỆFGHIÍÌỈĨỊJKLMNOÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢPQRSTUÚÙỦŨỤƯỨỪỬỮỰVWXYÝỲỶỸỴ";
+
+    private static final int ALPHABET_SIZE = VN_ALPHABET_LOWER.length();
+
+    private int currentKey;
+
+    // -- Get index in vn alphabet ---
+    private int getIndex(char c) {
+        int idx = VN_ALPHABET_LOWER.indexOf(c);
+        if (idx != -1) return idx;
+        idx = VN_ALPHABET_UPPER.indexOf(c);
+        return idx;
+    }
+
+    //
+    private char getCharAt(int index, boolean isUpper) {
+        if (isUpper) {
+            return VN_ALPHABET_UPPER.charAt(index % ALPHABET_SIZE);
+        } else {
+            return VN_ALPHABET_LOWER.charAt(index % ALPHABET_SIZE);
+        }
+    }
+
+    @Override
+    public Integer genKey() {
+        currentKey = new Random().nextInt(25) + 1; // 1 – 25
+        return currentKey;
+    }
+
+    @Override
+    public void loadKey(Integer key) {
+        this.currentKey = key;
+    }
 
     // === ENCRYPTION ===
-    public String encrypt(String text, int key) {
-        if (text == null)
+    @Override
+    public String encrypt(String text, Integer key) {
+        if (text == null || key == null) {
             text = "";
+        }
+        boolean hasVietnameseUnicode = false;
+
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c) && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+                hasVietnameseUnicode = true;
+            }
+        }
+
+        if (hasVietnameseUnicode) {
+            return encryptVN(text, key);
+        } else return encryptEng(text, key);
+    }
+
+    public String encryptVN(String text, Integer key) {
+        if (text == null) text = "";
+        StringBuilder result = new StringBuilder();
+
+        for (char c : text.toCharArray()) {
+            int vnIdx = VN_ALPHABET_LOWER.indexOf(c);
+            int vnIdxUpper = VN_ALPHABET_UPPER.indexOf(c);
+
+            if (vnIdx != -1) {
+                // Lowercase
+                int shifted = (vnIdx + key) % ALPHABET_SIZE;
+                result.append(VN_ALPHABET_LOWER.charAt(shifted));
+
+            } else if (vnIdxUpper != -1) {
+                // Uppercase
+                int shifted = (vnIdxUpper + key) % ALPHABET_SIZE;
+                result.append(VN_ALPHABET_UPPER.charAt(shifted));
+
+            } else {
+                // Others
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
+    public String encryptEng(String text, Integer key) {
+        if (text == null) text = "";
         int k = ((key % 26) + 26) % 26;
         StringBuilder result = new StringBuilder();
         char[] divText = text.toCharArray();
@@ -17,21 +99,40 @@ public class Caesar {
                 int index = charElement - base; // 0 - 25
                 int cipherText = (index + k) % 26;
                 result.append((char) (cipherText + base));
-            } else
-                result.append(charElement);
+
+            } else result.append(charElement);
 
         }
         return result.toString();
     }
 
     // ===DECRYPTION ===
-    public String decrypt(String text, int key) {
-        // logic giải mã
-        if (text == null)
+    @Override
+    public String decrypt(String text, Integer key) {
+        if (text == null || key == null) {
             text = "";
+        }
+        boolean hasVietnameseUnicode = false;
+
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c) && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+                hasVietnameseUnicode = true;
+            }
+        }
+
+        if (hasVietnameseUnicode) {
+            return decryptVN(text, key);
+        } else return decryptEng(text, key);
+
+    }
+
+    public String decryptEng(String text, Integer key) {
+        if (text == null) text = "";
+
         int k = ((key % 26) + 26) % 26;
         StringBuilder result = new StringBuilder();
         char[] divText = text.toCharArray();
+
         for (char charElement : divText) {
             // Check if is not a number
             if (Character.isLetter(charElement)) {
@@ -40,15 +141,35 @@ public class Caesar {
                 int index = charElement - base;
                 int plainText = (index - k + 26) % 26;
                 result.append((char) (plainText + base));
-            } else
-                result.append(charElement);
+            } else result.append(charElement);
 
         }
         return result.toString();
-
     }
 
-    static void main() {
-        System.out.println(new Caesar().decrypt("kxb yx dq oro", 3));
+    public String decryptVN(String text, Integer key) {
+        if (text == null) text = "";
+        StringBuilder result = new StringBuilder();
+
+        for (char c : text.toCharArray()) {
+            int vnIdx = VN_ALPHABET_LOWER.indexOf(c);
+            int vnIdxUpper = VN_ALPHABET_UPPER.indexOf(c);
+
+            if (vnIdx != -1) {
+                // Lowercase
+                int shifted = (vnIdx - key + ALPHABET_SIZE) % ALPHABET_SIZE;
+                result.append(VN_ALPHABET_LOWER.charAt(shifted));
+
+            } else if (vnIdxUpper != -1) {
+                // Uppercase
+                int shifted = (vnIdxUpper - key + ALPHABET_SIZE) % ALPHABET_SIZE;
+                result.append(VN_ALPHABET_UPPER.charAt(shifted));
+
+            } else {
+                // Others
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }

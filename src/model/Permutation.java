@@ -1,6 +1,19 @@
 package model;
 
+import java.util.*;
+
 public class Permutation implements ITextCipher<int[]> {
+
+    private int[] currentKey;
+
+    static void main(String[] args) {
+        Permutation permutation = new Permutation();
+        int[] key = permutation.genKey();
+        String cipherText = permutation.encrypt("ĐANG LÀM GÌ", key);
+        String plainText = permutation.decrypt(cipherText, key);
+        System.out.println(cipherText + "\n" + plainText);
+    }
+
     /*
      *   Ex: H E L L O << Method 2 >>
      *       0 1 2 3 4
@@ -10,12 +23,24 @@ public class Permutation implements ITextCipher<int[]> {
      * */
     @Override
     public int[] genKey() {
-        return new int[0];
+        int keyLength = (int) (Math.random() * 5) + 4;   // 4 – 8
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < keyLength; i++) {
+            indices.add(i);
+        }
+
+        Collections.shuffle(indices);
+
+        currentKey = new int[keyLength];
+        for (int i = 0; i < keyLength; i++) {
+            currentKey[i] = indices.get(i);
+        }
+        return currentKey;
     }
 
     @Override
     public void loadKey(int[] key) {
-
+        this.currentKey = key;
     }
 
     private String pad(String text, int block) {
@@ -61,15 +86,5 @@ public class Permutation implements ITextCipher<int[]> {
         // --- Remove padding ---
 
         return new String(plain).replaceAll("X+$", "");
-    }
-
-    static void main(String[] args) {
-        Permutation permutation = new Permutation();
-        int[] key = new int[]{
-                3, 1, 4, 2, 0
-        }; // HELLO
-        String cipherText = permutation.encrypt("HELLO WORLD", key);
-        String plainText = permutation.decrypt(cipherText, key);
-        System.out.println(cipherText + "\n" + plainText);
     }
 }
