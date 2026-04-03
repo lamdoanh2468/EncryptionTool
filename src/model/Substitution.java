@@ -20,7 +20,7 @@ public class Substitution implements ITextCipher<String> {
         this.alphabetSize = alphabet.length();
     }
 
-    // Factory method tiện lợi
+    // Factory method
     public static Substitution createEnglish() {
         return new Substitution("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     }
@@ -51,7 +51,6 @@ public class Substitution implements ITextCipher<String> {
         if (key == null || key.length() != alphabetSize) {
             throw new IllegalArgumentException("Key không hợp lệ! Phải có đúng " + alphabetSize + " ký tự.");
         }
-        // TODO: nếu muốn nghiêm ngặt hơn, kiểm tra key là permutation của alphabet
         this.currentKey = key;
     }
 

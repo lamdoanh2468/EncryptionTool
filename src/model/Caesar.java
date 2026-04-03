@@ -13,23 +13,6 @@ public class Caesar implements ITextCipher<Integer> {
 
     private int currentKey;
 
-    // -- Get index in vn alphabet ---
-    private int getIndex(char c) {
-        int idx = VN_ALPHABET_LOWER.indexOf(c);
-        if (idx != -1) return idx;
-        idx = VN_ALPHABET_UPPER.indexOf(c);
-        return idx;
-    }
-
-    //
-    private char getCharAt(int index, boolean isUpper) {
-        if (isUpper) {
-            return VN_ALPHABET_UPPER.charAt(index % ALPHABET_SIZE);
-        } else {
-            return VN_ALPHABET_LOWER.charAt(index % ALPHABET_SIZE);
-        }
-    }
-
     @Override
     public Integer genKey() {
         currentKey = new Random().nextInt(25) + 1; // 1 – 25

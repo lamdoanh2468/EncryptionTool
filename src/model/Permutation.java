@@ -1,26 +1,13 @@
 package model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Permutation implements ITextCipher<int[]> {
 
     private int[] currentKey;
 
-    static void main(String[] args) {
-        Permutation permutation = new Permutation();
-        int[] key = permutation.genKey();
-        String cipherText = permutation.encrypt("ĐANG LÀM GÌ", key);
-        String plainText = permutation.decrypt(cipherText, key);
-        System.out.println(cipherText + "\n" + plainText);
-    }
-
-    /*
-     *   Ex: H E L L O << Method 2 >>
-     *       0 1 2 3 4
-     *       key = [3,1,2,4,0] << Method 1 >>
-     *   Method 1 : cipher[i] = text.charAt[key[i]]
-     *   Method 2 : cipher[key[i]] = text[i]
-     * */
     @Override
     public int[] genKey() {
         int keyLength = (int) (Math.random() * 5) + 4;   // 4 – 8
@@ -43,7 +30,9 @@ public class Permutation implements ITextCipher<int[]> {
         this.currentKey = key;
     }
 
+    // CREATE PADDING
     private String pad(String text, int block) {
+        if (text == null) text = "";
         StringBuilder sb = new StringBuilder(text);
         int remainder = text.length() % block;
         if (remainder == 0) {
@@ -54,37 +43,56 @@ public class Permutation implements ITextCipher<int[]> {
         return sb.toString();
     }
 
+    // === ENCRYPTION ===
     @Override
-    public String encrypt(String plaintext, int[] key) {
-        // --- Padding ---
-        plaintext = pad(plaintext, key.length);
+    public String encrypt(String text, int[] key) {
+        if (text == null || key == null || key.length == 0) {
+            return "";
+        }
 
-        char[] cipher = new char[plaintext.length()];
-        char[] chars = plaintext.toCharArray();
+        String padded = pad(text, key.length);
+        return permute(padded, key);
+    }
+
+    private String permute(String text, int[] key) {
+        char[] cipher = new char[text.length()];
+        char[] chars = text.toCharArray();
 
         for (int i = 0; i < chars.length; i += key.length) {
             for (int j = 0; j < key.length; j++) {
                 int index = key[j] + i;
-                cipher[index] = chars[i + j];
+                if (index < chars.length) {
+                    cipher[index] = chars[i + j];
+                }
             }
         }
         return String.valueOf(cipher);
     }
 
+    // === DECRYPTION ===
     @Override
-    public String decrypt(String ciphertext, int[] key) {
+    public String decrypt(String text, int[] key) {
+        if (text == null || key == null || key.length == 0) {
+            return "";
+        }
 
-        char[] plain = new char[ciphertext.length()];
-        char[] chars = ciphertext.toCharArray();
+        String decrypted = inversePermute(text, key);
+        //Remove padding
+        return decrypted.replaceAll("X+$", "");
+    }
+
+    private String inversePermute(String text, int[] key) {
+        char[] plain = new char[text.length()];
+        char[] chars = text.toCharArray();
 
         for (int i = 0; i < chars.length; i += key.length) {
             for (int j = 0; j < key.length && i + j < chars.length; j++) {
                 int index = key[j] + i;
-                plain[i + j] = chars[index];
+                if (index < chars.length) {
+                    plain[i + j] = chars[index];
+                }
             }
         }
-        // --- Remove padding ---
-
-        return new String(plain).replaceAll("X+$", "");
+        return new String(plain);
     }
 }
