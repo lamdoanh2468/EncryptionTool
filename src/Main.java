@@ -1,5 +1,5 @@
 //import controller.CipherController;
-//import model.ITextCipher;
+//import model.text.ITextCipher;
 //import view.MainFrame;
 //import javax.swing.*;
 //

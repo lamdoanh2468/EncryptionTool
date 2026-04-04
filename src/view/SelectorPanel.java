@@ -1,6 +1,6 @@
 //package view;
 //
-//import model.ITextCipher;
+//import model.text.ITextCipher;
 //import javax.swing.*;
 //import javax.swing.border.*;
 //import java.awt.*;

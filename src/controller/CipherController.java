@@ -1,7 +1,7 @@
 //package controller;
 //
-//import model.ITextCipher;
-//import model.ITextCipher.Params;
+//import model.text.ITextCipher;
+//import model.text.ITextCipher.Params;
 //import view.MainFrame;
 //
 //import java.awt.*;

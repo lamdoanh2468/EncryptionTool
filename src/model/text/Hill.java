@@ -1,4 +1,4 @@
-package model;
+package model.text;
 
 public class Hill {
     private static final String VN_ALPHABET = "aăâbcdđeêghiklmnoôơpqrstuưvxy" + "áàảãạắằẳẵặấầẩẫậ" + "éèẻẽẹếềểễệ" + "íìỉĩị" + "óòỏõọốồổỗộớờởỡợ" + "úùủũụứừửữự" + "ýỳỷỹỵ";

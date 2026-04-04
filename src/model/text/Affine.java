@@ -1,4 +1,4 @@
-package model;
+package model.text;
 
 import java.util.Random;
 
