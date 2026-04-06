@@ -56,9 +56,9 @@ public class DES extends ACipher {
 
 	/*
 	 * BIS ----CIS-encrypt-read->>>>>>>> BOS
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 */
 
 	@Override
