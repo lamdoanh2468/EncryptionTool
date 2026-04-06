@@ -3,17 +3,38 @@ package model.text;
 import java.util.Random;
 
 public class Affine implements ITextCipher<int[]> {
-    public static final int VIETNAMESE = 1;  // Mode 1: Vietnamese
-    public static final int ENGLISH = 2;  // Mode 2: English
-    private static final int[] VALID_A = {1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25};
+    private static final String VN_ALPHABET_LOWER = "aáàảãạăắằẳẵặâấầẩẫậbcdđeéèẻẽẹêếềểễệfghiíìỉĩịjklmnoóòỏõọôốồổỗộơớờởỡợpqrstuúùủũụưứừửữựvwxyýỳỷỹỵ";
+
+    private static final String VN_ALPHABET_UPPER = "AÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬBCDĐEÉÈẺẼẸÊẾỀỂỄỆFGHIÍÌỈĨỊJKLMNOÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢPQRSTUÚÙỦŨỤƯỨỪỬỮỰVWXYÝỲỶỸỴ";
+
+    private static final int ALPHABET_SIZE = VN_ALPHABET_LOWER.length();  // 92
     private int[] currentKey;
+
+    // ==================== TEST ====================
+    public static void main(String[] args) {
+        Affine affine = new Affine();
+        int[] key = affine.genKey();
+
+        String plaintext = "Anh nhớ em rất nhiều! I love you. ❤️";
+
+        String cipher = affine.encrypt(plaintext, key);
+        String decrypted = affine.decrypt(cipher, key);
+
+        System.out.println("Plaintext : " + plaintext);
+        System.out.println("Key       : a = " + key[0] + ", b = " + key[1]);
+        System.out.println("Ciphertext: " + cipher);
+        System.out.println("Decrypted : " + decrypted);
+    }
 
 
     @Override
     public int[] genKey() {
         Random rand = new Random();
-        int a = VALID_A[rand.nextInt(VALID_A.length)];
-        int b = rand.nextInt(26);
+        int a = 0;
+        while (gcd(a, ALPHABET_SIZE) != 1) {
+            a = rand.nextInt(ALPHABET_SIZE - 1) + 1;
+        }
+        int b = rand.nextInt(ALPHABET_SIZE);
         currentKey = new int[]{a, b};
         return currentKey;
     }
@@ -40,85 +61,74 @@ public class Affine implements ITextCipher<int[]> {
         }
         return -1;
     }
-
-    public String encrypt(String text, int[] key, int mode) {
-        if (text == null) text = "";
-
-        int a = key[0];
-        int b = key[1];
-
-        StringBuilder result = new StringBuilder();
-        if (gcd(a, 26) != 1) {
-            return "Invalid key";
-        }
-
-        for (char ch : text.toCharArray()) {
-            if (Character.isLetter(ch) && ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))) {
-                // Chỉ mã hóa chữ cái Latin cơ bản (A-Z a-z)
-                boolean upper = Character.isUpperCase(ch);
-                char base = upper ? 'A' : 'a';
-                int index = ch - base;
-                int cipherText = ((index * a) + b) % 26;
-                result.append((char) (cipherText + base));
-            } else {
-                // Giữ nguyên mọi ký tự khác: dấu tiếng Việt, đ, số, dấu câu, khoảng trắng...
-                result.append(ch);
-            }
-        }
-        return result.toString();
-    }
-
-    public String decrypt(String text, int[] key, int mode) {
-        if (text == null) text = "";
-
-        int a = key[0];
-        int b = key[1];
-
-        StringBuilder result = new StringBuilder();
-        if (gcd(a, 26) != 1) {
-            return "Invalid key";
-        }
-
-        int a_1 = modInverse(a, 26);
-        for (char ch : text.toCharArray()) {
-            if (Character.isLetter(ch) && ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))) {
-                boolean upper = Character.isUpperCase(ch);
-                char base = upper ? 'A' : 'a';
-                int index = ch - base;
-                int plainText = (a_1 * (index - b + 26)) % 26;
-                plainText = (plainText + 26) % 26;
-                result.append((char) (plainText + base));
-            } else {
-                result.append(ch);
-            }
-        }
-        return result.toString();
-    }
-
-    @Override
+@Override
     public String encrypt(String text, int[] key) {
-        return encrypt(text, key, ENGLISH);
-    }
+        if (text == null) text = "";
 
-    @Override
+        int a = key[0];
+        int b = key[1];
+        int n = ALPHABET_SIZE;
+
+        if (gcd(a, 26) != 1) {
+            return "Invalid key";
+        }
+        StringBuilder result = new StringBuilder();
+
+        for (char ch : text.toCharArray()) {
+            int index = VN_ALPHABET_LOWER.indexOf(ch);
+            if (index != -1) { // Check if it has element
+                // lowercase
+                int newIdx = (a * index + b) % n;
+                result.append(VN_ALPHABET_LOWER.charAt(newIdx));
+            } else {
+                index = VN_ALPHABET_UPPER.indexOf(ch);
+                if (index != -1) {
+                    // uppercase
+                    int newIdx = (a * index + b) % n;
+                    result.append(VN_ALPHABET_UPPER.charAt(newIdx));
+                } else {
+                    result.append(ch);
+                }
+            }
+        }
+        return result.toString();
+    }
+   @Override
     public String decrypt(String text, int[] key) {
-        return decrypt(text, key, ENGLISH);
+        if (text == null) text = "";
+
+        int a = key[0];
+        int b = key[1];
+        int n = ALPHABET_SIZE;
+
+        if (gcd(a, 26) != 1) {
+            return "Invalid key";
+        }
+        StringBuilder result = new StringBuilder();
+        int a_1 = modInverse(a,n);
+        for (char ch : text.toCharArray()) {
+            int index = VN_ALPHABET_LOWER.indexOf(ch);
+
+            if (index != -1) {
+                // chữ thường
+                int newIdx = (a_1 * ((index - b + n) % n)) % n;
+                result.append(VN_ALPHABET_LOWER.charAt(newIdx));
+            }
+            else {
+                index = VN_ALPHABET_UPPER.indexOf(ch);
+                if (index != -1) {
+                    // chữ hoa
+                    int newIdx = (a_1 * ((index - b + n) % n)) % n;
+                    result.append(VN_ALPHABET_UPPER.charAt(newIdx));
+                }
+                else {
+                    result.append(ch);
+                }
+            }
+        }
+        return result.toString();
     }
 
-    static void main(String[] args) {
 
-        Affine affine = new Affine();
-
-        int[] key = affine.genKey();   // key hợp lệ
-
-        String plaintext = "anh nhớ em ";
-
-        String cipher = affine.encrypt(plaintext, key);
-        String decrypted = affine.decrypt(cipher, key);
-
-        System.out.println("Plaintext : " + plaintext);
-        System.out.println("Ciphertext: " + cipher);
-        System.out.println("Decrypted : " + decrypted);
-    }
-    }
+}
 
