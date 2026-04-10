@@ -1,25 +1,37 @@
 package model.text;
 
-public class Hill {
-    private static final String VN_ALPHABET = "aăâbcdđeêghiklmnoôơpqrstuưvxy" + "áàảãạắằẳẵặấầẩẫậ" + "éèẻẽẹếềểễệ" + "íìỉĩị" + "óòỏõọốồổỗộớờởỡợ" + "úùủũụứừửữự" + "ýỳỷỹỵ";
-    private static final int VN_MOD = VN_ALPHABET.length();
-    private static final String ENG_ALPHABET = "abcdefghijklmnopqrstuvwxyz";
-    private static final int EN_MOD = ENG_ALPHABET.length();
+import java.util.Random;
 
+public class Hill extends ATextCipher<int[][]> {
+    private static final int VN_MOD = VN_ALPHABET_LOWER.length();
+    private static final int EN_MOD = ENG_LOWER.length();
 
-    public static int gcd(int a, int b) {
-        if (b == 0) {
-            return a;
-        }
-        return gcd(b, a % b);
-
-    }
+    private int[][] currentKey;
 
     public static int det(int[][] matrix) {
         return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1];
     }
 
-    public int[][] inverseMatrix(int[][] key,int mod) {
+    @Override
+    public int[][] genKey() {
+        Random rng = new Random();
+        int[][] matrix;
+        do {
+            matrix = new int[][]{
+                    {rng.nextInt(26), rng.nextInt(26)},
+                    {rng.nextInt(26), rng.nextInt(26)}
+            };
+        } while (gcd(26, Math.abs(det(matrix))) != 1);
+        currentKey = matrix;
+        return currentKey;
+    }
+
+    @Override
+    public void loadKey(int[][] key) {
+        this.currentKey = key;
+    }
+
+    public int[][] inverseMatrix(int[][] key, int mod) {
 
         int det = det(key);
         det = (det % mod + mod) % mod;
@@ -43,20 +55,12 @@ public class Hill {
         return inverse;
     }
 
-    private int modInverse(int a, int n) {
-        for (int x = 1; x < n; x++) {
-            if ((a * x % n) == 1) {
-                return x;
-            }
-        }
-        throw new IllegalArgumentException("Not found mod inversion between " + a + " mod " + n);
-    }
-
     // === ENCRYPTION ===
+    @Override
     public String encrypt(String text, int[][] key) {
         if (text == null || key == null) return "";
         boolean isVN = hasVietnamese(text);
-        String alphabet = isVN ? VN_ALPHABET : ENG_ALPHABET;
+        String alphabet = isVN ? VN_ALPHABET_LOWER : ENG_LOWER;
         int mod = isVN ? VN_MOD : EN_MOD;
 
         // <<< Remove special text, whitespace >>>
@@ -78,7 +82,7 @@ public class Hill {
 
             // <<< Convert to 0 - 25 >>>
             int firstPlain = alphabet.indexOf(cleaned.charAt(i));
-            int secondPlain = alphabet.indexOf(cleaned.charAt(i+1));
+            int secondPlain = alphabet.indexOf(cleaned.charAt(i + 1));
 
             int firstCipher = (key[0][0] * firstPlain + key[0][1] * secondPlain) % mod;
             int secondCipher = (key[1][0] * firstPlain + key[1][1] * secondPlain) % mod;
@@ -95,20 +99,12 @@ public class Hill {
         return result.toString();
     }
 
-    private boolean hasVietnamese(String text) {
-        for(char c : text.toCharArray()) {
-            if (Character.isLetter(c) && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
-               return true;
-            }
-        }
-        return false;
-    }
-
     // ===DECRYPTION ===
+    @Override
     public String decrypt(String text, int[][] key) {
         if (text == null || key == null) return "";
         boolean isVN = hasVietnamese(text);
-        String alphabet = isVN ? VN_ALPHABET : ENG_ALPHABET;
+        String alphabet = isVN ? VN_ALPHABET_LOWER : ENG_LOWER;
         int mod = isVN ? VN_MOD : EN_MOD;
 
         // <<< Remove special text, whitespace >>>
@@ -131,7 +127,7 @@ public class Hill {
 
             // <<< Convert to 0 - 25 >>>
             int firstPlain = alphabet.indexOf(cleaned.charAt(i));
-            int secondPlain = alphabet.indexOf(cleaned.charAt(i+1));
+            int secondPlain = alphabet.indexOf(cleaned.charAt(i + 1));
 
             int firstCipher = (invKey[0][0] * firstPlain + invKey[0][1] * secondPlain) % mod;
             int secondCipher = (invKey[1][0] * firstPlain + invKey[1][1] * secondPlain) % mod;

@@ -2,11 +2,9 @@ package model.text;
 
 import java.util.*;
 
-public class Substitution implements ITextCipher<String> {
+public class Substitution extends ATextCipher<String> {
     // Vietnamese Alphabet
-    private static final String VN_LOWER = "aăâbcdđeêghiklmnoôơpqrstuưvxy" + "áàảãạắằẳẵặấầẩẫậéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ";
-    private static final String VN_UPPER = "AĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY" + "ÁÀẢÃẠẮẰẲẴẶẤẦẨẪẬÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
-    private static final String VN_ALPHABET = VN_LOWER + VN_UPPER;
+    private static final String VN_ALPHABET = VN_ALPHABET_LOWER + VN_ALPHABET_UPPER;
     private final String alphabet;
     private final int alphabetSize;
     private String currentKey;

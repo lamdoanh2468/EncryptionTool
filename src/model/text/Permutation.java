@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Permutation implements ITextCipher<int[]> {
+public class Permutation extends ATextCipher<int[]> {
 
     private int[] currentKey;
 

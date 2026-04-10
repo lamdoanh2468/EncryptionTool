@@ -2,12 +2,7 @@ package model.text;
 
 import java.util.Random;
 
-public class Caesar implements ITextCipher<Integer> {
-
-    // --- Add Vietnamese alphabet ---
-    private static final String VN_ALPHABET_LOWER = "aáàảãạăắằẳẵặâấầẩẫậbcdđeéèẻẽẹêếềểễệfghiíìỉĩịjklmnoóòỏõọôốồổỗộơớờởỡợpqrstuúùủũụưứừửữựvwxyýỳỷỹỵ";
-
-    private static final String VN_ALPHABET_UPPER = "AÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬBCDĐEÉÈẺẼẸÊẾỀỂỄỆFGHIÍÌỈĨỊJKLMNOÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢPQRSTUÚÙỦŨỤƯỨỪỬỮỰVWXYÝỲỶỸỴ";
+public class Caesar extends ATextCipher<Integer> {
 
     private static final int ALPHABET_SIZE = VN_ALPHABET_LOWER.length();
 

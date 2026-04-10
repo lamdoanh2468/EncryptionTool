@@ -2,12 +2,10 @@ package model.text;
 
 import java.util.Random;
 
-public class Affine implements ITextCipher<int[]> {
-    private static final String VN_ALPHABET_LOWER = "aáàảãạăắằẳẵặâấầẩẫậbcdđeéèẻẽẹêếềểễệfghiíìỉĩịjklmnoóòỏõọôốồổỗộơớờởỡợpqrstuúùủũụưứừửữựvwxyýỳỷỹỵ";
+public class Affine extends ATextCipher<int[]> {
+    private static final int ENG_SIZE = ENG_LOWER.length();
+    private static final int VN_SIZE = VN_ALPHABET_LOWER.length();  // 92
 
-    private static final String VN_ALPHABET_UPPER = "AÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬBCDĐEÉÈẺẼẸÊẾỀỂỄỆFGHIÍÌỈĨỊJKLMNOÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢPQRSTUÚÙỦŨỤƯỨỪỬỮỰVWXYÝỲỶỸỴ";
-
-    private static final int ALPHABET_SIZE = VN_ALPHABET_LOWER.length();  // 92
     private int[] currentKey;
 
     // ==================== TEST ====================
@@ -26,15 +24,14 @@ public class Affine implements ITextCipher<int[]> {
         System.out.println("Decrypted : " + decrypted);
     }
 
-
     @Override
     public int[] genKey() {
         Random rand = new Random();
         int a = 0;
-        while (gcd(a, ALPHABET_SIZE) != 1) {
-            a = rand.nextInt(ALPHABET_SIZE - 1) + 1;
+        while (gcd(a, VN_SIZE) != 1 || gcd(a, ENG_SIZE) != 1) {
+            a = rand.nextInt(VN_SIZE - 1) + 1;
         }
-        int b = rand.nextInt(ALPHABET_SIZE);
+        int b = rand.nextInt(VN_SIZE);
         currentKey = new int[]{a, b};
         return currentKey;
     }
@@ -61,31 +58,36 @@ public class Affine implements ITextCipher<int[]> {
         }
         return -1;
     }
-@Override
+
+    @Override
     public String encrypt(String text, int[] key) {
         if (text == null) text = "";
 
         int a = key[0];
         int b = key[1];
-        int n = ALPHABET_SIZE;
+        boolean hasVNChar = hasVietnamese(text);
 
-        if (gcd(a, 26) != 1) {
+        String lower = hasVNChar ? VN_ALPHABET_LOWER : ENG_LOWER;
+        String upper = hasVNChar ? VN_ALPHABET_UPPER : ENG_UPPER;
+        int n = hasVietnamese(text) ? VN_SIZE : ENG_SIZE;
+
+        if (gcd(a, n) != 1) {
             return "Invalid key";
         }
         StringBuilder result = new StringBuilder();
 
         for (char ch : text.toCharArray()) {
-            int index = VN_ALPHABET_LOWER.indexOf(ch);
+            int index = lower.indexOf(ch);
             if (index != -1) { // Check if it has element
                 // lowercase
                 int newIdx = (a * index + b) % n;
-                result.append(VN_ALPHABET_LOWER.charAt(newIdx));
+                result.append(lower.charAt(newIdx));
             } else {
-                index = VN_ALPHABET_UPPER.indexOf(ch);
+                index = upper.indexOf(ch);
                 if (index != -1) {
                     // uppercase
                     int newIdx = (a * index + b) % n;
-                    result.append(VN_ALPHABET_UPPER.charAt(newIdx));
+                    result.append(upper.charAt(newIdx));
                 } else {
                     result.append(ch);
                 }
@@ -93,35 +95,38 @@ public class Affine implements ITextCipher<int[]> {
         }
         return result.toString();
     }
-   @Override
+
+
+    @Override
     public String decrypt(String text, int[] key) {
         if (text == null) text = "";
 
         int a = key[0];
         int b = key[1];
-        int n = ALPHABET_SIZE;
+        boolean hasVNChar = hasVietnamese(text);
 
-        if (gcd(a, 26) != 1) {
+        String lower = hasVNChar ? VN_ALPHABET_LOWER : ENG_LOWER;
+        String upper = hasVNChar ? VN_ALPHABET_UPPER : ENG_UPPER;
+        int n = hasVNChar ? VN_SIZE : ENG_SIZE;
+
+        if (gcd(a, n) != 1) {
             return "Invalid key";
         }
         StringBuilder result = new StringBuilder();
-        int a_1 = modInverse(a,n);
+        int a_1 = modInverse(a, n);
         for (char ch : text.toCharArray()) {
-            int index = VN_ALPHABET_LOWER.indexOf(ch);
-
+            int index = lower.indexOf(ch);
             if (index != -1) {
                 // chữ thường
                 int newIdx = (a_1 * ((index - b + n) % n)) % n;
-                result.append(VN_ALPHABET_LOWER.charAt(newIdx));
-            }
-            else {
-                index = VN_ALPHABET_UPPER.indexOf(ch);
+                result.append(lower.charAt(newIdx));
+            } else {
+                index = upper.indexOf(ch);
                 if (index != -1) {
                     // chữ hoa
                     int newIdx = (a_1 * ((index - b + n) % n)) % n;
-                    result.append(VN_ALPHABET_UPPER.charAt(newIdx));
-                }
-                else {
+                    result.append(upper.charAt(newIdx));
+                } else {
                     result.append(ch);
                 }
             }
