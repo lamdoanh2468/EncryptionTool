@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-public abstract class ACipher implements IFileCipher {
+public abstract class AFileCipher implements IFileCipher {
     protected SecretKey key;
     protected String transformation; // mode and padding
     protected List<Integer> keySizes;
 
-    public ACipher(String transformation) {
+    public AFileCipher(String transformation) {
         this.transformation = transformation;
         this.keySizes = new ArrayList<>();
     }

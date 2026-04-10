@@ -15,18 +15,21 @@ public class SelectorPanel extends JPanel {
     public final JTextArea keyArea;
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
+
     public JButton genButton;
     public JButton importButton;
     public JButton exportButton;
     public JComboBox<String> fileCipherAlgoCombo;
     public JComboBox<Integer> keySizeCombo;
-    TextController textController;
+    public TextController textController;
 
-    public SelectorPanel() {
+    public SelectorPanel(TextController textController) {
+        this.textController = textController;
+
         setLayout(new BorderLayout(0, 10));
         setOpaque(false);
 
-        // Row 1: type + algo combos
+        // Row 1
         JPanel topRow = new JPanel(new GridLayout(1, 2, 14, 0));
         topRow.setOpaque(false);
         typeCombo = createDropdown(new String[]{"Đối xứng", "Bất đối xứng"});
@@ -71,56 +74,39 @@ public class SelectorPanel extends JPanel {
         left.add(scroll, BorderLayout.CENTER);
 
         card.add(left, BorderLayout.CENTER);
-        card.add(buildKeyButtonCol(keyArea, "txt", true), BorderLayout.EAST);
+        card.add(buildKeyButtonCol(keyArea, "txt"), BorderLayout.EAST);
         return card;
     }
 
 
-    private JPanel buildKeyHalf(String label, JTextArea area, String ext) {
-        JPanel p = new JPanel(new BorderLayout(8, 0));
-        p.setOpaque(false);
-
-        JPanel left = new JPanel(new BorderLayout(0, 4));
-        left.setOpaque(false);
-        JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("SansSerif", Font.BOLD, 10));
-        lbl.setForeground(MainFrame.TXT_LABEL);
-        JScrollPane scroll = new JScrollPane(area);
-        scroll.setBorder(BorderFactory.createLineBorder(MainFrame.BORDER_CLR));
-        left.add(lbl, BorderLayout.NORTH);
-        left.add(scroll, BorderLayout.CENTER);
-
-        p.add(left, BorderLayout.CENTER);
-        p.add(buildKeyButtonCol(area, ext, false), BorderLayout.EAST);
-        return p;
-    }
-
     //  Key buttons
 
-    private JPanel buildKeyButtonCol(JTextArea area, String ext, boolean clickGen) {
+    private JPanel buildKeyButtonCol(JTextArea area, String ext) {
         JPanel col = new JPanel();
         col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS));
         col.setOpaque(false);
         col.setBorder(new EmptyBorder(18, 0, 0, 0)); // align with textarea (below label)
 
-        if (clickGen) {
-            genButton = createButton("Generate", MainFrame.ACCENT);
-            col.add(genButton);
-            col.add(Box.createVerticalStrut(15));
-        }
-
-        importButton = createButton("Import", new Color(70, 70, 70));
-        String algo = (String) algoCombo.getSelectedItem();
-        importButton.addActionListener(e -> {
+        //Generate button
+        genButton = createButton("Generate", MainFrame.ACCENT);
+        genButton.addActionListener(e -> {
+            String algo = (String) algoCombo.getSelectedItem();
             textController.generateKey(textController.getCipher(algo), keyArea);
         });
+        col.add(genButton);
+        col.add(Box.createVerticalStrut(15));
+
+        //Import Button
+        importButton = createButton("Import", new Color(70, 70, 70));
         col.add(importButton);
         col.add(Box.createVerticalStrut(15));
 
+        //Export Button
         exportButton = createButton("Export", new Color(70, 70, 70));
         col.add(exportButton);
         col.add(Box.createVerticalStrut(15));
 
+        //Copy button
         JButton cpy = createButton("Copy", new Color(70, 70, 70));
         cpy.addActionListener(e ->
                 Toolkit.getDefaultToolkit().getSystemClipboard()
@@ -149,7 +135,7 @@ public class SelectorPanel extends JPanel {
     private void onAlgoChanged() {
         String algo = (String) algoCombo.getSelectedItem();
         if (algo == null) return;
-        keyCardLayout.show(keyCardPanel, "Classical");
+        keyCardLayout.show(keyCardPanel, "Symmetric");
         updateTextAlgo(algo);
     }
 

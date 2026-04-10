@@ -14,7 +14,7 @@ public abstract class ATextCipher<K> implements ITextCipher<K> {
     public void loadKey(K key) {
         this.currentKey = key;
     }
-
+    public abstract String getKey();
     public K getCurrentKey() {
         return currentKey;
     }

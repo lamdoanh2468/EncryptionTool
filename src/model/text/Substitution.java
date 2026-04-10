@@ -52,6 +52,11 @@ public class Substitution extends ATextCipher<String> {
         this.currentKey = key;
     }
 
+    @Override
+    public String getKey() {
+        return currentKey;
+    }
+
     // ==================== ENCRYPT ====================
     @Override
     public String encrypt(String plain, String key) {

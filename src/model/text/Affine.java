@@ -41,6 +41,12 @@ public class Affine extends ATextCipher<int[]> {
         this.currentKey = key;
     }
 
+    @Override
+    public String getKey() {
+        if (currentKey == null) return "Khóa Affine hiện không có";
+        return "a = " + currentKey[0] + ", b = " + currentKey[1];
+    }
+
     public int gcd(int a, int b) {
         while (b != 0) {
             int t = b;

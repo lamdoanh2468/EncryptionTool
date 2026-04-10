@@ -70,37 +70,39 @@ public class TextController {
     public <K> void generateKey(ATextCipher<K> cipher, JTextArea keyArea) {
         K key = cipher.genKey();
         cipher.loadKey(key);
-        keyArea.setText(key.toString());
+        keyArea.setText(cipher.getKey());
     }
 
-    public <K> void encryptText(ATextCipher<K> cipher, String text, JTextArea inputArea) {
+    public <K> void encryptText(ATextCipher<K> cipher, String text, JTextArea outputArea) {
         K key = cipher.getCurrentKey();
         if (key == null) {
             view.selectorPanel.keyArea.setText("Chưa có khóa");
             return;
         }
         String cipherText = cipher.encrypt(text, key);
-        inputArea.setText(cipherText);
+        outputArea.setText(cipherText);
     }
 
-    public <K> void decryptText(ATextCipher<K> cipher, String text, JTextArea outputArea) {
+    public <K> void decryptText(ATextCipher<K> cipher, String text, JTextArea inputArea) {
         K key = cipher.getCurrentKey();
         if (key == null) {
             view.selectorPanel.keyArea.setText("Chưa có khóa, vui lòng tạo khóa");
             return;
         }
         String cipherText = cipher.decrypt(text, key);
-        outputArea.setText(cipherText);
+        inputArea.setText(cipherText);
     }
+
     public ATextCipher<?> getCipher(String algoName) {
         if (algoName == null) return null;
         return switch (algoName) {
-            case "Caesar"       -> caesar;
-            case "Affine"       -> affine;
-            case "Vigenère"     -> vigenere;
+            case "Caesar" -> caesar;
+            case "Affine" -> affine;
+            case "Vigenère" -> vigenere;
             case "Substitution" -> substEnglish;
-            case "Permutation"  -> permutation;
-            default             -> null;
+            case "Permutation" -> permutation;
+            case "Hill" -> hill;
+            default -> null;
         };
     }
 

@@ -1,5 +1,7 @@
 package view;
 
+import controller.TextController;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -21,6 +23,8 @@ public class MainFrame extends JFrame {
     public TextPanel textPanel;
     public FilePanel filePanel;
 
+    public TextController textController = new TextController(this);
+
     public MainFrame() {
         setTitle("Cipher Tool");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -36,7 +40,7 @@ public class MainFrame extends JFrame {
         content.setBackground(BG_DEEP);
         content.setBorder(new EmptyBorder(16, 20, 20, 20));
 
-        selectorPanel = new SelectorPanel();
+        selectorPanel = new SelectorPanel(textController);
         content.add(selectorPanel, BorderLayout.NORTH);
 
         JTabbedPane tabbedPane = buildTabs();

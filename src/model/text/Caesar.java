@@ -19,6 +19,11 @@ public class Caesar extends ATextCipher<Integer> {
         this.currentKey = key;
     }
 
+    @Override
+    public String getKey() {
+        return String.valueOf(currentKey);
+    }
+
     // === ENCRYPTION ===
     @Override
     public String encrypt(String text, Integer key) {

@@ -31,6 +31,14 @@ public class Hill extends ATextCipher<int[][]> {
         this.currentKey = key;
     }
 
+    @Override
+    public String getKey() {
+        if (currentKey == null) return "Khóa Hill hiện không có";
+
+        return currentKey[0][0] + "," + currentKey[0][1] + ";"
+                + currentKey[1][0] + "," + currentKey[1][1];
+    }
+
     public int[][] inverseMatrix(int[][] key, int mod) {
 
         int det = det(key);
@@ -143,4 +151,5 @@ public class Hill extends ATextCipher<int[][]> {
 
         return result.toString();
     }
+
 }

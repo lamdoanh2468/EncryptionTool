@@ -9,7 +9,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-public class DES extends ACipher {
+public class DES extends AFileCipher {
 
     public DES() {
         super("DES/CBC/PKCS5Padding");

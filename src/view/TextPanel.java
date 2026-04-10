@@ -1,5 +1,7 @@
 package view;
 
+import controller.TextController;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -16,7 +18,14 @@ public class TextPanel extends JPanel {
     public JButton copyBtn;
     public JLabel charCountLabel;
 
-    public TextPanel() {
+    public TextController textController;
+    public SelectorPanel selectorPanel;
+
+    public TextPanel(TextController textController, SelectorPanel selectorPanel) {
+
+        this.textController = textController;
+        this.selectorPanel = selectorPanel;
+
         setLayout(new BorderLayout(0, 10));
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(16, 0, 0, 0));
@@ -79,6 +88,11 @@ public class TextPanel extends JPanel {
         p.setPreferredSize(new Dimension(110, 0));
 
         encryptBtn = makeArrowBtn("MÃ HÓA", MainFrame.ACCENT, "▶");
+        encryptBtn.addActionListener(e -> {
+
+            String text = inputArea.getText();
+            String algo =  (String) selectorPanel.algoCombo.getSelectedItem();
+            textController.encryptText(,text,inputArea)});
         decryptBtn = makeArrowBtn("GIẢI MÃ", new Color(60, 180, 120), "◀");
 
         p.add(Box.createVerticalGlue());

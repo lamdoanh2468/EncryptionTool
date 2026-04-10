@@ -30,6 +30,20 @@ public class Permutation extends ATextCipher<int[]> {
         this.currentKey = key;
     }
 
+    @Override
+    public String getKey() {
+        if (currentKey == null) return "";
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < currentKey.length; i++) {
+            sb.append(currentKey[i]);
+            if (i < currentKey.length - 1) {
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
+    }
+
     // CREATE PADDING
     private String pad(String text, int block) {
         if (text == null) text = "";
