@@ -10,7 +10,7 @@ public class Permutation extends ATextCipher<int[]> {
 
     @Override
     public int[] genKey() {
-        int keyLength = (int) (Math.random() * 5) + 4;   // 4 – 8
+        int keyLength = (int) (Math.random() * 5) + 4;
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < keyLength; i++) {
             indices.add(i);
@@ -42,6 +42,28 @@ public class Permutation extends ATextCipher<int[]> {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public int[] parseKey(String keyString) {
+        if (keyString == null || keyString.trim().isEmpty()) {
+            throw new IllegalArgumentException("Khóa hiện đang trống");
+        }
+
+        try {
+
+            String[] parts = keyString.trim().split("\\s+");
+            int[] key = new int[parts.length];
+
+            for (int i = 0; i < parts.length; i++) {
+                key[i] = Integer.parseInt(parts[i]);
+            }
+
+            return key;
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Định dạng khóa hoán vị không đúng");
+        }
     }
 
     // CREATE PADDING

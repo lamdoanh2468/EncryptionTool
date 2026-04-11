@@ -15,8 +15,9 @@ public abstract class ATextCipher<K> implements ITextCipher<K> {
         this.currentKey = key;
     }
     public abstract String getKey();
+    public abstract K parseKey(String keyString) ;
     public K getCurrentKey() {
-        return currentKey;
+        return this.currentKey;
     }
     protected boolean hasVietnamese(String text) {
         if (text == null) return false;

@@ -35,8 +35,42 @@ public class Hill extends ATextCipher<int[][]> {
     public String getKey() {
         if (currentKey == null) return "Khóa Hill hiện không có";
 
-        return currentKey[0][0] + "," + currentKey[0][1] + ";"
-                + currentKey[1][0] + "," + currentKey[1][1];
+        return "[" + currentKey[0][0] + "," + currentKey[0][1] + "]" + "\n"
+                + "[" + currentKey[1][0] + "," + currentKey[1][1] + "]";
+    }
+
+
+    /**
+     * [2,5]
+     * [1,3]
+     * **/
+    @Override
+    public int[][] parseKey(String keyString) {
+        if (keyString == null || keyString.isEmpty()) {
+            throw new IllegalArgumentException("Khóa hiện không có");
+        }
+        try {
+
+            String[] rows = keyString.split("\\n");
+            int[][] matrix = new int[2][2];
+
+            for (int i = 0; i < 2; i++) {
+                String row = rows[i]
+                        .replace("[", "")
+                        .replace("]", "")
+                        .trim();
+
+                String[] nums = row.split(",");
+
+                matrix[i][0] = Integer.parseInt(nums[0].trim());
+                matrix[i][1] = Integer.parseInt(nums[1].trim());
+            }
+
+            return matrix;
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Định dạng khóa Hill không đúng");
+        }
     }
 
     public int[][] inverseMatrix(int[][] key, int mod) {

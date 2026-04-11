@@ -129,7 +129,7 @@ public class MainFrame extends JFrame {
         tp.setFont(new Font("SansSerif", Font.PLAIN, 13));
         styleTabPane(tp);
 
-        textPanel = new TextPanel();
+        textPanel = new TextPanel(textController,selectorPanel);
         filePanel = new FilePanel();
 
         tp.addTab("  Text  ", textPanel);

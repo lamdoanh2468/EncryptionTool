@@ -47,6 +47,22 @@ public class Affine extends ATextCipher<int[]> {
         return "a = " + currentKey[0] + ", b = " + currentKey[1];
     }
 
+    @Override
+    public int[] parseKey(String keyString) {
+        if (keyString == null || keyString.isEmpty()) {
+            throw new IllegalArgumentException("Không có khóa");
+        }
+        try {
+            String[] parts = keyString.split(",");
+            int a = Integer.parseInt(parts[0].split("=")[1].trim());
+            int b = Integer.parseInt(parts[1].split("=")[1].trim());
+            return new int[]{a, b};
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Định dạng khóa Affine không đúng" );
+        }
+    }
+
     public int gcd(int a, int b) {
         while (b != 0) {
             int t = b;

@@ -13,8 +13,7 @@ public class TextController {
     private final Affine affine = new Affine();
     private final Vigenere vigenere = new Vigenere();
     private final Hill hill = new Hill();
-    private final Substitution substEnglish = Substitution.createEnglish();
-    private final Substitution substVietnamese = Substitution.createVietnamese();
+    private final Substitution substitution = new Substitution();
     private final Permutation permutation = new Permutation();
 
     public TextController(MainFrame view) {
@@ -73,24 +72,40 @@ public class TextController {
         keyArea.setText(cipher.getKey());
     }
 
-    public <K> void encryptText(ATextCipher<K> cipher, String text, JTextArea outputArea) {
-        K key = cipher.getCurrentKey();
-        if (key == null) {
-            view.selectorPanel.keyArea.setText("Chưa có khóa");
+    public <K> void encryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea outputArea) {
+        if (keyText == null || keyText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Chưa có khóa, vui lòng tạo khóa");
             return;
         }
-        String cipherText = cipher.encrypt(text, key);
-        outputArea.setText(cipherText);
+        try {
+            K key = cipher.parseKey(keyText.trim());
+            if (key == null) {
+                JOptionPane.showMessageDialog(view, "Key không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String cipherText = cipher.encrypt(text, key);
+            outputArea.setText(cipherText);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(view, "Lỗi mã hóa, vui lòng thử lại");
+        }
     }
 
-    public <K> void decryptText(ATextCipher<K> cipher, String text, JTextArea inputArea) {
-        K key = cipher.getCurrentKey();
-        if (key == null) {
-            view.selectorPanel.keyArea.setText("Chưa có khóa, vui lòng tạo khóa");
+    public <K> void decryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea inputArea) {
+        if (keyText == null || keyText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Chưa có khóa, vui lòng tạo hoặc import khóa", "Lỗi", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String cipherText = cipher.decrypt(text, key);
-        inputArea.setText(cipherText);
+        try {
+            K key = cipher.parseKey(keyText.trim());
+            if (key == null) {
+                JOptionPane.showMessageDialog(view, "Key không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String plainText = cipher.decrypt(text, key);
+            inputArea.setText(plainText);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(view, "Lỗi giải mã: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public ATextCipher<?> getCipher(String algoName) {
@@ -99,7 +114,7 @@ public class TextController {
             case "Caesar" -> caesar;
             case "Affine" -> affine;
             case "Vigenère" -> vigenere;
-            case "Substitution" -> substEnglish;
+            case "Substitution" -> substitution;
             case "Permutation" -> permutation;
             case "Hill" -> hill;
             default -> null;

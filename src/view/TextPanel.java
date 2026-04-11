@@ -5,6 +5,7 @@ import controller.TextController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -87,14 +88,21 @@ public class TextPanel extends JPanel {
         p.setOpaque(false);
         p.setPreferredSize(new Dimension(110, 0));
 
-        encryptBtn = makeArrowBtn("MÃ HÓA", MainFrame.ACCENT, "▶");
+        encryptBtn = createEDButton("MÃ HÓA", MainFrame.BLUE_BTN);
         encryptBtn.addActionListener(e -> {
-
+            String key = selectorPanel.keyArea.getText();
             String text = inputArea.getText();
-            String algo =  (String) selectorPanel.algoCombo.getSelectedItem();
-            textController.encryptText(,text,inputArea)});
-        decryptBtn = makeArrowBtn("GIẢI MÃ", new Color(60, 180, 120), "◀");
+            String algo = (String) selectorPanel.algoCombo.getSelectedItem();
+            textController.encryptText(textController.getCipher(algo), text, key, outputArea);
+        });
 
+        decryptBtn = createEDButton("GIẢI MÃ", new Color(60, 180, 120));
+        decryptBtn.addActionListener(e -> {
+            String key = selectorPanel.keyArea.getText();
+            String text = inputArea.getText();
+            String algo = (String) selectorPanel.algoCombo.getSelectedItem();
+            textController.decryptText(textController.getCipher(algo), text, key, outputArea);
+        });
         p.add(Box.createVerticalGlue());
         p.add(encryptBtn);
         p.add(Box.createVerticalStrut(10));
@@ -103,8 +111,8 @@ public class TextPanel extends JPanel {
         return p;
     }
 
-    private JButton makeArrowBtn(String label, Color color, String icon) {
-        JButton btn = new JButton("<html><center>" + icon + "<br><small>" + label + "</small></center></html>") {
+    private JButton createEDButton(String label, Color color) {
+        JButton btn = new JButton("<html><center>" + label + "</small></center></html>") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -144,7 +152,15 @@ public class TextPanel extends JPanel {
         btnRow.setOpaque(false);
 
         copyBtn = createButton("Sao chép kết quả", MainFrame.ACCENT);
+        copyBtn.addActionListener(e -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(outputArea.getText()), null);
+        });
+
         clearBtn = createButton("Xóa tất cả", new Color(100, 40, 40));
+        clearBtn.addActionListener(e -> {
+            inputArea.setText("");
+            outputArea.setText("");
+        });
 
         btnRow.add(copyBtn);
         btnRow.add(clearBtn);

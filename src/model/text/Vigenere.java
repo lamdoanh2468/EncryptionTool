@@ -26,6 +26,11 @@ public class Vigenere extends ATextCipher<String> {
         return currentKey;
     }
 
+    @Override
+    public String parseKey(String keyString) {
+        return this.currentKey;
+    }
+
     // === ENCRYPTION ===
     @Override
     public String encrypt(String text, String key) {

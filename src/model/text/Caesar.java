@@ -24,6 +24,11 @@ public class Caesar extends ATextCipher<Integer> {
         return String.valueOf(currentKey);
     }
 
+    @Override
+    public Integer parseKey(String keyString) {
+        return Integer.parseInt(keyString);
+    }
+
     // === ENCRYPTION ===
     @Override
     public String encrypt(String text, Integer key) {
