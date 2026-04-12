@@ -19,7 +19,6 @@ public class MainFrame extends JFrame {
     public static final Color TXT_MUTED = new Color(120, 120, 120);
     public static final Color TXT_LABEL = new Color(140, 140, 140);
 
-    public final SelectorPanel selectorPanel;
     public TextPanel textPanel;
     public FilePanel filePanel;
 
@@ -40,8 +39,7 @@ public class MainFrame extends JFrame {
         content.setBackground(BG_DEEP);
         content.setBorder(new EmptyBorder(16, 20, 20, 20));
 
-        selectorPanel = new SelectorPanel(textController);
-        content.add(selectorPanel, BorderLayout.NORTH);
+
 
         JTabbedPane tabbedPane = buildTabs();
         content.add(tabbedPane, BorderLayout.CENTER);
@@ -129,7 +127,7 @@ public class MainFrame extends JFrame {
         tp.setFont(new Font("SansSerif", Font.PLAIN, 13));
         styleTabPane(tp);
 
-        textPanel = new TextPanel(textController,selectorPanel);
+        textPanel = new TextPanel(textController);
         filePanel = new FilePanel();
 
         tp.addTab("  Text  ", textPanel);

@@ -22,32 +22,44 @@ public class TextPanel extends JPanel {
     public TextController textController;
     public SelectorPanel selectorPanel;
 
-    public TextPanel(TextController textController, SelectorPanel selectorPanel) {
+    public TextPanel(TextController textController) {
 
         this.textController = textController;
-        this.selectorPanel = selectorPanel;
 
         setLayout(new BorderLayout(0, 10));
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(16, 0, 0, 0));
 
+
+        // --- Selector View ---
+        selectorPanel = new SelectorPanel(textController);
+        JPanel northPanel = new JPanel(new BorderLayout(0, 0));
+        northPanel.setOpaque(false);
+        northPanel.add(selectorPanel, BorderLayout.CENTER);
+
+        // --- Create line separator --
+        JSeparator divider = new JSeparator(SwingConstants.HORIZONTAL);
+        divider.setForeground(MainFrame.BORDER_CLR);
+        divider.setPreferredSize(new Dimension(0, 1));
+        northPanel.add(divider, BorderLayout.SOUTH);
+
+        add(northPanel, BorderLayout.NORTH);
         // --- IO Row ---
         JPanel ioRow = new JPanel(new GridBagLayout());
         ioRow.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // --- Left textarea ---
-        inputArea = MainFrame.makeTextArea("Nhập văn bản...");
-        JScrollPane leftScroll = MainFrame.scrollWrap(inputArea);
-
-        // --- Middle buttons ---
+        // --- Plain textarea ---
+        inputArea = MainFrame.makeTextArea("");
+        JPanel leftPanel = createLabeledArea("Văn bản gốc", inputArea);
+        // --- Encrypt and decryption button ---
         JPanel midPanel = buildMidPanel();
 
-        // --- Right textarea ---
-        outputArea = MainFrame.makeTextArea("Kết quả");
+        // --- Cipher textarea ---
+        outputArea = MainFrame.makeTextArea("");
         outputArea.setEditable(false);
         outputArea.setBackground(Color.WHITE);
-        JScrollPane rightScroll = MainFrame.scrollWrap(outputArea);
+        JPanel rightPanel = createLabeledArea("Kết quả",outputArea);
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1.0;
@@ -55,7 +67,7 @@ public class TextPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
-        ioRow.add(leftScroll, gbc);
+        ioRow.add(leftPanel, gbc);
 
         gbc.gridx = 1;
         gbc.weightx = 0;
@@ -65,7 +77,7 @@ public class TextPanel extends JPanel {
         gbc.gridx = 2;
         gbc.weightx = 1.0;
         gbc.insets = new Insets(0, 0, 0, 0);
-        ioRow.add(rightScroll, gbc);
+        ioRow.add(rightPanel, gbc);
 
         add(ioRow, BorderLayout.CENTER);
 
@@ -76,10 +88,25 @@ public class TextPanel extends JPanel {
         inputArea.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-
                 updateCount();
             }
         });
+    }
+
+    private JPanel createLabeledArea(String inputText, JTextArea inputArea) {
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        panel.setOpaque(false);
+
+        JLabel label = new JLabel(inputText);
+        label.setFont(new Font("SansSerif", Font.BOLD, 14));
+        label.setForeground(MainFrame.TXT_LABEL);
+
+        JScrollPane scroll = MainFrame.scrollWrap(inputArea);
+
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+
+        return panel;
     }
 
     private JPanel buildMidPanel() {
@@ -153,7 +180,7 @@ public class TextPanel extends JPanel {
 
         copyBtn = createButton("Sao chép kết quả", MainFrame.ACCENT);
         copyBtn.addActionListener(e -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(outputArea.getText()), null);
+            textController.copyKey(outputArea);
         });
 
         clearBtn = createButton("Xóa tất cả", new Color(100, 40, 40));

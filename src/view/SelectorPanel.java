@@ -5,7 +5,6 @@ import controller.TextController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 
 public class SelectorPanel extends JPanel {
     private static final String[] SYMMETRIC_ALGOS =
@@ -99,18 +98,23 @@ public class SelectorPanel extends JPanel {
         //Copy button
         JButton cpy = createButton("Sao chép khóa", new Color(70, 70, 70));
         cpy.addActionListener(e ->
-                Toolkit.getDefaultToolkit().getSystemClipboard()
-                        .setContents(new StringSelection(area.getText()), null));
+                textController.copyKey(keyArea));
         col.add(cpy);
         col.add(Box.createVerticalStrut(15));
 
         //Import Button
         importButton = createButton("Nhập khóa từ file ", new Color(70, 70, 70));
+        importButton.addActionListener(e -> {
+            textController.importKey(keyArea);
+        });
         col.add(importButton);
         col.add(Box.createVerticalStrut(15));
 
         //Export Button
         exportButton = createButton("Xuất khóa", new Color(70, 70, 70));
+        exportButton.addActionListener(e -> {
+            textController.exportKey(keyArea, "txt");
+        });
         col.add(exportButton);
 
 
