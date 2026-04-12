@@ -62,15 +62,15 @@ public class SelectorPanel extends JPanel {
         JPanel left = new JPanel(new BorderLayout(0, 4));
         left.setOpaque(false);
 
-        JLabel hint = new JLabel("KEY");
-        hint.setName("classicalHint");
-        hint.setFont(new Font("SansSerif", Font.BOLD, 10));
-        hint.setForeground(MainFrame.TXT_LABEL);
+        JLabel keyAlgo = new JLabel("KEY");
+        keyAlgo.setName("cipherAlgo");
+        keyAlgo.setFont(new Font("SansSerif", Font.BOLD, 10));
+        keyAlgo.setForeground(MainFrame.TXT_LABEL);
 
         JScrollPane scroll = new JScrollPane(keyArea);
         scroll.setBorder(BorderFactory.createLineBorder(MainFrame.BORDER_CLR));
 
-        left.add(hint, BorderLayout.NORTH);
+        left.add(keyAlgo, BorderLayout.NORTH);
         left.add(scroll, BorderLayout.CENTER);
 
         card.add(left, BorderLayout.CENTER);
@@ -88,7 +88,7 @@ public class SelectorPanel extends JPanel {
         col.setBorder(new EmptyBorder(18, 0, 0, 0)); // align with textarea (below label)
 
         //Generate button
-        genButton = createButton("Generate", MainFrame.ACCENT);
+        genButton = createButton("Tạo khóa", MainFrame.ACCENT);
         genButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
             textController.generateKey(textController.getCipher(algo), keyArea);
@@ -96,22 +96,24 @@ public class SelectorPanel extends JPanel {
         col.add(genButton);
         col.add(Box.createVerticalStrut(15));
 
-        //Import Button
-        importButton = createButton("Import", new Color(70, 70, 70));
-        col.add(importButton);
-        col.add(Box.createVerticalStrut(15));
-
-        //Export Button
-        exportButton = createButton("Export", new Color(70, 70, 70));
-        col.add(exportButton);
-        col.add(Box.createVerticalStrut(15));
-
         //Copy button
-        JButton cpy = createButton("Copy", new Color(70, 70, 70));
+        JButton cpy = createButton("Sao chép khóa", new Color(70, 70, 70));
         cpy.addActionListener(e ->
                 Toolkit.getDefaultToolkit().getSystemClipboard()
                         .setContents(new StringSelection(area.getText()), null));
         col.add(cpy);
+        col.add(Box.createVerticalStrut(15));
+
+        //Import Button
+        importButton = createButton("Nhập khóa từ file ", new Color(70, 70, 70));
+        col.add(importButton);
+        col.add(Box.createVerticalStrut(15));
+
+        //Export Button
+        exportButton = createButton("Xuất khóa", new Color(70, 70, 70));
+        col.add(exportButton);
+
+
         col.add(Box.createVerticalGlue());
         return col;
     }
@@ -136,29 +138,30 @@ public class SelectorPanel extends JPanel {
         String algo = (String) algoCombo.getSelectedItem();
         if (algo == null) return;
         keyCardLayout.show(keyCardPanel, "Symmetric");
-        updateTextAlgo(algo);
+        updateKeyHint(algo);
     }
 
-    private void updateTextAlgo(String algo) {
-        String hint = switch (algo) {
+    private void updateKeyHint(String algo) {
+        String algorithm = switch (algo) {
             case "Caesar" -> "KEY  —  số nguyên 0–25";
-            case "Affine" -> "KEY  —  Hai tham số a và b ";
-            case "Vigenère" -> "KEY  —  chuỗi chữ cái a-z ";
-            case "Hill" -> "KEY  —  ma trận 2×2 JSON  (ví dụ: [[3,3],[2,5]])";
+            case "Affine" -> "KEY  —  Hai tham số a và b";
+            case "Vigenère" -> "KEY  —  chuỗi chữ cái a-z";
+            case "Hill" -> "KEY  —  ma trận 2×2";
             case "Substitution" -> "KEY  —  chuỗi 26 ký tự hoán vị của A-Z";
             case "Permutation" -> "KEY  —  thứ tự cột, cách dấu phẩy";
             default -> "KEY";
         };
-        findAndSetAlgo(keyCardPanel, "classicalHint", hint);
+        selectCipherAlgo(keyCardPanel, "cipherAlgo", algorithm);
     }
 
-    private void findAndSetAlgo(Container c, String name, String text) {
+    private void selectCipherAlgo(Container c, String name, String text) {
         for (Component comp : c.getComponents()) {
             if (name.equals(comp.getName()) && comp instanceof JLabel lbl) {
                 lbl.setText(text);
+                keyArea.setText("");
                 return;
             }
-            if (comp instanceof Container sub) findAndSetAlgo(sub, name, text);
+            if (comp instanceof Container sub) selectCipherAlgo(sub, name, text);
         }
     }
 

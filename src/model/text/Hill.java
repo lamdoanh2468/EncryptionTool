@@ -69,7 +69,7 @@ public class Hill extends ATextCipher<int[][]> {
             return matrix;
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Định dạng khóa Hill không đúng");
+            return null;
         }
     }
 
@@ -157,19 +157,15 @@ public class Hill extends ATextCipher<int[][]> {
                 clean.append(c);
             }
         }
-        String cleaned = clean.toString();
-        if (cleaned.length() % 2 != 0) {
-            cleaned += "x"; // pad
-        }
 
         StringBuilder result = new StringBuilder();
         int[][] invKey = inverseMatrix(key, mod);
 
-        for (int i = 0; i < cleaned.length(); i += 2) {
+        for (int i = 0; i < clean.length(); i += 2) {
 
             // <<< Convert to 0 - 25 >>>
-            int firstPlain = alphabet.indexOf(cleaned.charAt(i));
-            int secondPlain = alphabet.indexOf(cleaned.charAt(i + 1));
+            int firstPlain = alphabet.indexOf(clean.charAt(i));
+            int secondPlain = alphabet.indexOf(clean.charAt(i + 1));
 
             int firstCipher = (invKey[0][0] * firstPlain + invKey[0][1] * secondPlain) % mod;
             int secondCipher = (invKey[1][0] * firstPlain + invKey[1][1] * secondPlain) % mod;
@@ -182,7 +178,9 @@ public class Hill extends ATextCipher<int[][]> {
             result.append(alphabet.charAt(firstCipher));
             result.append(alphabet.charAt(secondCipher));
         }
-
+        if (result.length() > 0 && result.charAt(result.length() - 1) == 'x') {
+            result.deleteCharAt(result.length() - 1);
+        }
         return result.toString();
     }
 

@@ -80,13 +80,13 @@ public class TextController {
         try {
             K key = cipher.parseKey(keyText.trim());
             if (key == null) {
-                JOptionPane.showMessageDialog(view, "Key không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(view, "Key không hợp lệ! Vui lòng tạo lại key", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             String cipherText = cipher.encrypt(text, key);
             outputArea.setText(cipherText);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Lỗi mã hóa, vui lòng thử lại");
+            JOptionPane.showMessageDialog(view, "Lỗi mã hóa, vui lòng tạo lại khóa và thử lại");
         }
     }
 

@@ -59,7 +59,7 @@ public class Affine extends ATextCipher<int[]> {
             return new int[]{a, b};
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Định dạng khóa Affine không đúng" );
+            return null;
         }
     }
 

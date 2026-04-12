@@ -4,27 +4,16 @@ import java.util.*;
 
 public class Substitution extends ATextCipher<String> {
 
-    private static final String ENG_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String VN_ALPHABET = VN_ALPHABET_LOWER + VN_ALPHABET_UPPER;
+    private static final String ENG_ALPHABET = ENG_LOWER+ ENG_UPPER;
 
-    private String alphabet;
-    private int alphabetSize;
+    private int alphabetSize = ENG_ALPHABET.length();
 
-    // ==================== DETECT ALPHABET ====================
-    private void detectAlphabet(String text) {
-        if (hasVietnamese(text)) {
-            alphabet = VN_ALPHABET;
-        } else {
-            alphabet = ENG_ALPHABET;
-        }
-        alphabetSize = alphabet.length();
-    }
 
     @Override
     public String genKey() {
-        List<Character> letters = new ArrayList<>();
 
-        for (char c : alphabet.toCharArray()) {
+        List<Character> letters = new ArrayList<>();
+        for (char c : ENG_ALPHABET.toCharArray()) {
             letters.add(c);
         }
 
@@ -40,7 +29,11 @@ public class Substitution extends ATextCipher<String> {
 
     @Override
     public void loadKey(String key) {
-        if (key == null || key.length() != alphabetSize) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key không được null!");
+        }
+
+        if (key.length() != alphabetSize) {
             throw new IllegalArgumentException(
                     "Key không hợp lệ! Phải có đúng " + alphabetSize + " ký tự.");
         }
@@ -59,10 +52,11 @@ public class Substitution extends ATextCipher<String> {
 
     @Override
     public String encrypt(String plain, String key) {
+        if (plain == null || plain.isEmpty()) return plain;
 
-        detectAlphabet(plain);
+        loadKey(key);
 
-        Map<Character, Character> map = buildMapping(alphabet, key);
+        Map<Character, Character> map = buildMapping(ENG_ALPHABET, key);
         StringBuilder result = new StringBuilder(plain.length());
 
         for (char c : plain.toCharArray()) {
@@ -71,12 +65,14 @@ public class Substitution extends ATextCipher<String> {
 
         return result.toString();
     }
+
     @Override
     public String decrypt(String cipher, String key) {
+        if (cipher == null || cipher.isEmpty()) return cipher;
 
-        detectAlphabet(cipher);
+        loadKey(key);
 
-        Map<Character, Character> reverseMap = buildMapping(key, alphabet);
+        Map<Character, Character> reverseMap = buildMapping(key, ENG_ALPHABET);
         StringBuilder result = new StringBuilder(cipher.length());
 
         for (char c : cipher.toCharArray()) {
@@ -87,14 +83,10 @@ public class Substitution extends ATextCipher<String> {
     }
 
     private Map<Character, Character> buildMapping(String from, String to) {
-
         Map<Character, Character> map = new HashMap<>(alphabetSize);
-
         for (int i = 0; i < alphabetSize; i++) {
             map.put(from.charAt(i), to.charAt(i));
         }
-
         return map;
     }
-
 }

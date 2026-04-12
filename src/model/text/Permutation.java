@@ -62,7 +62,7 @@ public class Permutation extends ATextCipher<int[]> {
             return key;
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Định dạng khóa hoán vị không đúng");
+            return null;
         }
     }
 
