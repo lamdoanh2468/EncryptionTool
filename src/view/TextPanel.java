@@ -5,7 +5,6 @@ import controller.TextController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -20,7 +19,7 @@ public class TextPanel extends JPanel {
     public JLabel charCountLabel;
 
     public TextController textController;
-    public SelectorPanel selectorPanel;
+    public TextSelectorPanel selectorPanel;
 
     public TextPanel(TextController textController) {
 
@@ -32,7 +31,7 @@ public class TextPanel extends JPanel {
 
 
         // --- Selector View ---
-        selectorPanel = new SelectorPanel(textController);
+        selectorPanel = new TextSelectorPanel(textController);
         JPanel northPanel = new JPanel(new BorderLayout(0, 0));
         northPanel.setOpaque(false);
         northPanel.add(selectorPanel, BorderLayout.CENTER);

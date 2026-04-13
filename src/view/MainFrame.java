@@ -1,5 +1,6 @@
 package view;
 
+import controller.FileController;
 import controller.TextController;
 
 import javax.swing.*;
@@ -23,7 +24,7 @@ public class MainFrame extends JFrame {
     public FilePanel filePanel;
 
     public TextController textController = new TextController(this);
-
+    public FileController fileController = new FileController(this);
     public MainFrame() {
         setTitle("Cipher Tool");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -128,7 +129,7 @@ public class MainFrame extends JFrame {
         styleTabPane(tp);
 
         textPanel = new TextPanel(textController);
-        filePanel = new FilePanel();
+        filePanel = new FilePanel(fileController);
 
         tp.addTab("  Text  ", textPanel);
         tp.addTab("  File  ", filePanel);

@@ -1,5 +1,7 @@
 package view;
 
+import controller.FileController;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -14,15 +16,19 @@ public class FilePanel extends JPanel {
     public final JLabel statusLabel;
     private File selectedFile;
 
-    public FilePanel() {
+    FileController fileController;
+    FileSelectorPanel fileSelectorPanel;
+
+    public FilePanel(FileController fileController) {
+        this.fileController = fileController;
         setLayout(new BorderLayout(0, 16));
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(20, 16, 20, 16));
 
-        // --- Top: File chooser ---
-        JPanel topPanel = new JPanel(new BorderLayout(10, 0));
-        topPanel.setOpaque(false);
+        // Khởi tạo FileSelectorPanel (phần thuật toán + key)
+        fileSelectorPanel = new FileSelectorPanel(fileController);
 
+        // ====================== TOP: CHỌN FILE ======================
         JLabel titleLabel = new JLabel("CHỌN FILE");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 10));
         titleLabel.setForeground(MainFrame.TXT_LABEL);
@@ -49,9 +55,8 @@ public class FilePanel extends JPanel {
         topWrapper.add(titleLabel, BorderLayout.NORTH);
         topWrapper.add(fileRow, BorderLayout.CENTER);
 
-        add(topWrapper, BorderLayout.NORTH);
-
-        // --- Center: Buttons ---
+        // ====================== CENTER: FileSelectorPanel (AES/DES + Key) ======================
+        // ====================== SOUTH: Nút mã hóa + Status ======================
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
         btnPanel.setOpaque(false);
 
@@ -64,17 +69,23 @@ public class FilePanel extends JPanel {
         btnPanel.add(encryptFileBtn);
         btnPanel.add(decryptFileBtn);
 
-        add(btnPanel, BorderLayout.CENTER);
+        // Panel chứa cả nút + status (để SOUTH gọn gàng)
+        JPanel southPanel = new JPanel(new BorderLayout(0, 12));
+        southPanel.setOpaque(false);
+        southPanel.add(btnPanel, BorderLayout.NORTH);
 
-        // --- Bottom: Status ---
         statusLabel = new JLabel(" ");
         statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
         statusLabel.setForeground(MainFrame.TXT_MUTED);
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        southPanel.add(statusLabel, BorderLayout.SOUTH);
 
-        add(statusLabel, BorderLayout.SOUTH);
+        // ====================== THÊM VÀO LAYOUT ======================
+        add(topWrapper, BorderLayout.NORTH);
+        add(fileSelectorPanel, BorderLayout.CENTER);   // ← FileSelectorPanel giờ nằm đúng vị trí
+        add(southPanel, BorderLayout.SOUTH);
 
-        // --- Wire choose file ---
+        // ====================== Wire choose file ======================
         chooseFileBtn.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
             fc.setDialogTitle("Chọn file để mã hóa / giải mã");
@@ -85,6 +96,10 @@ public class FilePanel extends JPanel {
                 filePathLabel.setForeground(MainFrame.TXT_MAIN);
             }
         });
+
+        // TODO: Thêm listener cho nút Encrypt/Decrypt (sẽ kết nối với FileController)
+        // encryptFileBtn.addActionListener(e -> fileController.encryptFile(...));
+        // decryptFileBtn.addActionListener(e -> fileController.decryptFile(...));
     }
 
     private JButton makeActionButton(String text, Color color) {

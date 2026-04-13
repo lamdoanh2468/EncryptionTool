@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class SelectorPanel extends JPanel {
+public class TextSelectorPanel extends JPanel {
     private static final String[] SYMMETRIC_ALGOS =
             {"Caesar", "Affine", "Vigenère", "Hill", "Substitution", "Permutation"};
     public final JComboBox<String> typeCombo;
@@ -22,7 +22,7 @@ public class SelectorPanel extends JPanel {
     public JComboBox<Integer> keySizeCombo;
     public TextController textController;
 
-    public SelectorPanel(TextController textController) {
+    public TextSelectorPanel(TextController textController) {
         this.textController = textController;
 
         setLayout(new BorderLayout(0, 10));
