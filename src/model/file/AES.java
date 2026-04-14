@@ -15,14 +15,19 @@ public class AES extends AFileCipher {
         // TODO Auto-generated method stub
         AES aes = new AES();
         aes.genKey(aes.keySizes.get(2));
-        aes.encryptFile("/home/lamdoanh2468/Desktop/1.pdf","/home/lamdoanh2468/Desktop/2.pdf");
-        aes.decryptFile("/home/lamdoanh2468/Desktop/2.pdf","/home/lamdoanh2468/Desktop/3.pdf");
+        aes.encryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12.png","C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png");
+        aes.decryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png","C:\\Users\\lamdo\\Downloads\\artplayer_06_12_dec.png");
 
     }
 
     public AES() {
         super("AES/CBC/PKCS5Padding"); // default mode and padding
         keySizes = Arrays.asList(128,192,256);
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return "AES";
     }
 
     @Override
@@ -55,7 +60,7 @@ public class AES extends AFileCipher {
         // TODO Auto-generated method stub
         IvParameterSpec initVector =  new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(transformation);
-        cipher.init(Cipher.DECRYPT_MODE, key);
+        cipher.init(Cipher.DECRYPT_MODE, key,initVector);
         byte[] decryptedData = cipher.doFinal(data);
         return new String(decryptedData, StandardCharsets.UTF_8);
     }
@@ -102,9 +107,9 @@ public class AES extends AFileCipher {
         while ((count = bis.read(readBuffer)) != -1) {
             cos.write(readBuffer, 0, count);
         }
-        bis.close();
         bos.flush();
         bos.close();
+        bis.close();
         return true;
     }
 

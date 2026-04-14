@@ -21,6 +21,12 @@ public abstract class AFileCipher implements IFileCipher {
         this.transformation = transformation;
         this.keySizes = new ArrayList<>();
     }
+
+    public List<Integer> getKeySizes() {
+        return keySizes;
+    }
+
+    public abstract String getAlgorithm();
     protected void validateKeySize(int keySize) throws NoSuchAlgorithmException {
         if (!keySizes.contains(keySize)) {
             throw new NoSuchAlgorithmException("Key size " + keySize + " không có được hỗ trợ cho " + getClass().getSimpleName());

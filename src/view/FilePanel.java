@@ -2,10 +2,17 @@ package view;
 
 import controller.FileController;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 public class FilePanel extends JPanel {
 
@@ -14,21 +21,18 @@ public class FilePanel extends JPanel {
     public final JButton encryptFileBtn;
     public final JButton decryptFileBtn;
     public final JLabel statusLabel;
-    private File selectedFile;
-
     FileController fileController;
     FileSelectorPanel fileSelectorPanel;
+    private File selectedFile;
 
-    public FilePanel(FileController fileController) {
+    public FilePanel(FileController fileController) throws Exception {
         this.fileController = fileController;
         setLayout(new BorderLayout(0, 16));
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(20, 16, 20, 16));
 
-        // Khởi tạo FileSelectorPanel (phần thuật toán + key)
-        fileSelectorPanel = new FileSelectorPanel(fileController);
+        this.fileSelectorPanel = new FileSelectorPanel(fileController);
 
-        // ====================== TOP: CHỌN FILE ======================
         JLabel titleLabel = new JLabel("CHỌN FILE");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 10));
         titleLabel.setForeground(MainFrame.TXT_LABEL);
@@ -44,6 +48,9 @@ public class FilePanel extends JPanel {
         filePathLabel.setOpaque(true);
 
         chooseFileBtn = makeActionButton("Chọn file...", MainFrame.ACCENT);
+        chooseFileBtn.addActionListener(
+                e -> selectedFile = fileController.chooseFile(filePathLabel)
+        );
 
         JPanel fileRow = new JPanel(new BorderLayout(10, 0));
         fileRow.setOpaque(false);
@@ -55,51 +62,55 @@ public class FilePanel extends JPanel {
         topWrapper.add(titleLabel, BorderLayout.NORTH);
         topWrapper.add(fileRow, BorderLayout.CENTER);
 
-        // ====================== CENTER: FileSelectorPanel (AES/DES + Key) ======================
-        // ====================== SOUTH: Nút mã hóa + Status ======================
+
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
         btnPanel.setOpaque(false);
 
-        encryptFileBtn = makeActionButton("🔒  Mã hóa File", MainFrame.BLUE_BTN);
-        decryptFileBtn = makeActionButton("🔓  Giải mã File", new Color(60, 180, 120));
+        encryptFileBtn = makeActionButton("Mã hóa File", MainFrame.BLUE_BTN);
+        encryptFileBtn.addActionListener(e -> {
 
+            String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
+            try {
+                fileController.encryptFile(fileController.getCipher(algo), selectedFile);
+            } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+                     NoSuchAlgorithmException | IOException | BadPaddingException | InvalidKeyException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        decryptFileBtn = makeActionButton("Giải mã File", new Color(60, 180, 120));
+        decryptFileBtn.addActionListener(e -> {
+            String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
+            try {
+                fileController.decryptFile(fileController.getCipher(algo), selectedFile);
+            } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+                     NoSuchAlgorithmException | IOException | BadPaddingException | InvalidKeyException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         encryptFileBtn.setPreferredSize(new Dimension(180, 44));
         decryptFileBtn.setPreferredSize(new Dimension(180, 44));
 
         btnPanel.add(encryptFileBtn);
         btnPanel.add(decryptFileBtn);
 
-        // Panel chứa cả nút + status (để SOUTH gọn gàng)
         JPanel southPanel = new JPanel(new BorderLayout(0, 12));
         southPanel.setOpaque(false);
         southPanel.add(btnPanel, BorderLayout.NORTH);
 
-        statusLabel = new JLabel(" ");
+        statusLabel = new JLabel("Vui lòng chọn file để tiếp tục");
         statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
         statusLabel.setForeground(MainFrame.TXT_MUTED);
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         southPanel.add(statusLabel, BorderLayout.SOUTH);
 
-        // ====================== THÊM VÀO LAYOUT ======================
         add(topWrapper, BorderLayout.NORTH);
-        add(fileSelectorPanel, BorderLayout.CENTER);   // ← FileSelectorPanel giờ nằm đúng vị trí
+        add(fileSelectorPanel, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
 
-        // ====================== Wire choose file ======================
         chooseFileBtn.addActionListener(e -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setDialogTitle("Chọn file để mã hóa / giải mã");
-            int result = fc.showOpenDialog(this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                selectedFile = fc.getSelectedFile();
-                filePathLabel.setText(selectedFile.getAbsolutePath());
-                filePathLabel.setForeground(MainFrame.TXT_MAIN);
-            }
+
         });
 
-        // TODO: Thêm listener cho nút Encrypt/Decrypt (sẽ kết nối với FileController)
-        // encryptFileBtn.addActionListener(e -> fileController.encryptFile(...));
-        // decryptFileBtn.addActionListener(e -> fileController.decryptFile(...));
     }
 
     private JButton makeActionButton(String text, Color color) {
@@ -126,12 +137,4 @@ public class FilePanel extends JPanel {
         return btn;
     }
 
-    public File getSelectedFile() {
-        return selectedFile;
-    }
-
-    public void setStatus(String msg, boolean success) {
-        statusLabel.setText(msg);
-        statusLabel.setForeground(success ? new Color(40, 160, 80) : new Color(200, 60, 60));
-    }
 }

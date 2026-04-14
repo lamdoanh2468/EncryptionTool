@@ -25,7 +25,7 @@ public class MainFrame extends JFrame {
 
     public TextController textController = new TextController(this);
     public FileController fileController = new FileController(this);
-    public MainFrame() {
+    public MainFrame() throws Exception {
         setTitle("Cipher Tool");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(820, 620);
@@ -121,7 +121,7 @@ public class MainFrame extends JFrame {
         return sp;
     }
 
-    private JTabbedPane buildTabs() {
+    private JTabbedPane buildTabs() throws Exception {
         JTabbedPane tp = new JTabbedPane();
         tp.setBackground(BG_PANEL);
         tp.setForeground(TXT_MAIN);

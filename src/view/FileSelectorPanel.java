@@ -1,26 +1,25 @@
 package view;
 
 import controller.FileController;
+import model.file.AFileCipher;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.security.NoSuchAlgorithmException;
 
 public class FileSelectorPanel extends JPanel {
     private static final String[] SYMMETRIC_ALGOS = {"AES", "DES"};
 
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
-    public final JComboBox<Integer> keySizeCombo;
     public final JTextArea keyArea;
-
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
-
+    public JComboBox<Integer> keySizeCombo;
     public JButton genButton;
     public JButton importButton;
     public JButton exportButton;
-
     public FileController fileController;
 
     public FileSelectorPanel(FileController fileController) {
@@ -29,7 +28,7 @@ public class FileSelectorPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setOpaque(false);
 
-        // --- Row 1: Type + Algorithm ---
+        // Top row
         JPanel topRow = new JPanel(new GridLayout(1, 2, 14, 0));
         topRow.setOpaque(false);
 
@@ -47,16 +46,17 @@ public class FileSelectorPanel extends JPanel {
         keySizeCombo.setSelectedItem(256);
 
         keyCardPanel.add(buildSymmetricKeyCard(), "Symmetric");
-        // TODO: nếu cần card Asymmetric riêng thì add ở đây
         add(keyCardPanel, BorderLayout.CENTER);
+
+        // Initial state
+        onTypeChanged();
+        onAlgoChanged();
 
         // --- Listeners ---
         typeCombo.addActionListener(e -> onTypeChanged());
         algoCombo.addActionListener(e -> onAlgoChanged());
 
-        // Initial state
-        onTypeChanged();
-        onAlgoChanged();
+
     }
 
     private JPanel buildSymmetricKeyCard() {
@@ -92,41 +92,48 @@ public class FileSelectorPanel extends JPanel {
         left.add(keyContent, BorderLayout.CENTER);
 
         card.add(left, BorderLayout.CENTER);
-        card.add(buildKeyButtonCol(), BorderLayout.EAST);
+        card.add(buildKeyButtonRow(), BorderLayout.SOUTH);
         return card;
     }
 
-    private JPanel buildKeyButtonCol() {
-        JPanel col = new JPanel();
-        col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS));
-        col.setOpaque(false);
-        col.setBorder(new EmptyBorder(18, 0, 0, 0));
+    private JPanel buildKeyButtonRow() {
+        JPanel row = new JPanel(new FlowLayout((FlowLayout.CENTER)));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(18, 0, 0, 0));
 
         genButton = createButton("Tạo khóa", MainFrame.ACCENT);
         genButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
-            int keySize = "AES".equals(algo) ? (int) keySizeCombo.getSelectedItem() : 64; // DES
-//            fileController.generateKey(algo, keySize, keyArea);
+            AFileCipher cipher = fileController.getCipher(algo);
+            Integer keySize = (Integer) keySizeCombo.getSelectedItem();
+            try {
+                fileController.genKey(cipher, keySize, keyArea);
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException(ex);
+            }
         });
-        col.add(genButton);
-        col.add(Box.createVerticalStrut(15));
+        row.add(genButton);
 
-        JButton cpy = createButton("Sao chép khóa", new Color(70, 70, 70));
-//        cpy.addActionListener(e -> fileController.copyKey(keyArea));
-        col.add(cpy);
-        col.add(Box.createVerticalStrut(15));
 
         importButton = createButton("Nhập khóa từ file", new Color(70, 70, 70));
-//        importButton.addActionListener(e -> fileController.importKey(keyArea));
-        col.add(importButton);
-        col.add(Box.createVerticalStrut(15));
+        importButton.addActionListener(e -> {
+            String algo = (String) algoCombo.getSelectedItem();
+            AFileCipher cipher = fileController.getCipher(algo);
+            fileController.importKey(cipher);
+        });
+        row.add(importButton);
 
-        exportButton = createButton("Xuất khóa", new Color(70, 70, 70));
-//        exportButton.addActionListener(e -> fileController.exportKey(keyArea, "key"));
-        col.add(exportButton);
+        exportButton = createButton("Xuất khóa ra file", new Color(70, 70, 70));
+        exportButton.addActionListener(e -> {
+            try {
+                fileController.exportKey();
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        row.add(exportButton);
 
-        col.add(Box.createVerticalGlue());
-        return col;
+        return row;
     }
 
     private void onTypeChanged() {
@@ -147,16 +154,18 @@ public class FileSelectorPanel extends JPanel {
 
     private void onAlgoChanged() {
         String algo = (String) algoCombo.getSelectedItem();
-        if (algo == null) return;
-
-        keySizeCombo.setEnabled("AES".equals(algo));
-        updateKeyHint(algo);
+        AFileCipher cipher = fileController.getCipher(algo);
+        keySizeCombo.removeAllItems();
+        for (Integer size : cipher.getKeySizes()) {
+            keySizeCombo.addItem(size);
+        }
+        updateKeyDescription(algo);
     }
 
-    private void updateKeyHint(String algo) {
+    private void updateKeyDescription(String algo) {
         String algorithm = switch (algo) {
-            case "AES" -> "KEY — 128/192/256 bit (hex hoặc Base64)";
-            case "DES" -> "KEY — 64 bit (8 bytes)";
+            case "AES" -> "KEY — 128/192/256 bit";
+            case "DES" -> "KEY — 64 bit";
             case "RSA" -> "KEY — Public / Private Key";
             default -> "KEY";
         };
@@ -194,16 +203,13 @@ public class FileSelectorPanel extends JPanel {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 Color base = getModel().isRollover() ? color.brighter() : color;
-                g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(),
-                        getModel().isRollover() ? 25 : 12));
+                g2.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), getModel().isRollover() ? 25 : 12));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
                 g2.setColor(base);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 6, 6);
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(getText(),
-                        (getWidth() - fm.stringWidth(getText())) / 2,
-                        (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                g2.drawString(getText(), (getWidth() - fm.stringWidth(getText())) / 2, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
                 g2.dispose();
             }
         };

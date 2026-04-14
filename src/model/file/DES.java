@@ -13,7 +13,7 @@ public class DES extends AFileCipher {
 
     public DES() {
         super("DES/CBC/PKCS5Padding");
-        keySizes = List.of(56);   // DES chỉ hỗ
+        keySizes = List.of(56);   //
     }
 
     public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, IOException, InvalidAlgorithmParameterException {
@@ -67,6 +67,11 @@ public class DES extends AFileCipher {
      *
      *
      */
+
+    @Override
+    public String getAlgorithm() {
+        return "DES";
+    }
 
     @Override
     public void loadKey(SecretKey key) {
