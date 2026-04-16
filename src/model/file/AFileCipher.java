@@ -8,30 +8,32 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 public abstract class AFileCipher implements IFileCipher {
+    protected final String algorithm;
     protected SecretKey key;
-    protected String transformation; // mode and padding
+    protected String mode;
+    protected String padding;
     protected List<Integer> keySizes;
 
-    public AFileCipher(String transformation) {
-        this.transformation = transformation;
-        this.keySizes = new ArrayList<>();
+    public AFileCipher(String algorithm, String defaultMode, String defaultPadding) {
+        this.algorithm = algorithm;
+        this.mode = defaultMode;
+        this.padding = defaultPadding;
     }
 
     public List<Integer> getKeySizes() {
         return keySizes;
     }
 
-    public abstract String getAlgorithm();
     protected void validateKeySize(int keySize) throws NoSuchAlgorithmException {
         if (!keySizes.contains(keySize)) {
             throw new NoSuchAlgorithmException("Key size " + keySize + " không có được hỗ trợ cho " + getClass().getSimpleName());
         }
     }
+
     public void loadKey(SecretKey key) {
         if (key == null) {
             throw new IllegalArgumentException("Key không được bỏ trống");
@@ -39,17 +41,41 @@ public abstract class AFileCipher implements IFileCipher {
         this.key = key;
     }
 
-    // === Key Size ===
-    public abstract List<Integer> getSupportedKeySizes();
-
-    // === Transformation  ===
     public String getTransformation() {
-        return transformation;
+        return algorithm + "/" + mode + "/" + padding;
     }
 
-    public void setTransformation(String transformation) {
-        this.transformation = transformation;
+    public String getAlgorithm() {
+        return algorithm;
     }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        if (getSupportedModes().contains(mode)) {
+            this.mode = mode;
+        } else {
+            throw new IllegalArgumentException("Mode " + mode + " không được hỗ trợ cho " + algorithm);
+        }
+    }
+
+    public String getPadding() {
+        return padding;
+    }
+
+    public void setPadding(String padding) {
+        if (getSupportedPaddings().contains(padding)) {
+            this.padding = padding;
+        } else {
+            throw new IllegalArgumentException("Padding " + padding + " không được hỗ trợ cho " + algorithm);
+        }
+    }
+
+    public abstract List<String> getSupportedModes();
+
+    public abstract List<String> getSupportedPaddings();
 
 
     public String encryptBase64(String text) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {

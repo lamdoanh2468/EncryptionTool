@@ -13,10 +13,14 @@ public class FileSelectorPanel extends JPanel {
 
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
+    public final JComboBox<String> modeCombo;
+    public final JComboBox<String> paddingCombo;
+    public final JComboBox<Integer> keySizeCombo;
     public final JTextArea keyArea;
+
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
-    public JComboBox<Integer> keySizeCombo;
+
     public JButton genButton;
     public JButton importButton;
     public JButton exportButton;
@@ -28,7 +32,7 @@ public class FileSelectorPanel extends JPanel {
         setLayout(new BorderLayout(0, 10));
         setOpaque(false);
 
-        // Top row
+        // ==================== TOP ROW ====================
         JPanel topRow = new JPanel(new GridLayout(1, 2, 14, 0));
         topRow.setOpaque(false);
 
@@ -39,11 +43,15 @@ public class FileSelectorPanel extends JPanel {
         topRow.add(wrapLabeled("THUẬT TOÁN", algoCombo));
         add(topRow, BorderLayout.NORTH);
 
-        // --- Key panel ---
+
+        // ==================== KEY CARD ====================
         keyCardPanel.setOpaque(false);
         keyArea = makeKeyArea();
-        keySizeCombo = new JComboBox<>(new Integer[]{128, 192, 256});
-        keySizeCombo.setSelectedItem(256);
+
+        // Khởi tạo 3 combo
+        keySizeCombo = new JComboBox<>();
+        modeCombo = createDropdown(new String[]{});
+        paddingCombo = createDropdown(new String[]{});
 
         keyCardPanel.add(buildSymmetricKeyCard(), "Symmetric");
         add(keyCardPanel, BorderLayout.CENTER);
@@ -52,52 +60,48 @@ public class FileSelectorPanel extends JPanel {
         onTypeChanged();
         onAlgoChanged();
 
-        // --- Listeners ---
+        // ==================== LISTENERS ====================
         typeCombo.addActionListener(e -> onTypeChanged());
         algoCombo.addActionListener(e -> onAlgoChanged());
-
-
+        modeCombo.addActionListener(e -> updateCipherConfig());
+        paddingCombo.addActionListener(e -> updateCipherConfig());
     }
 
     private JPanel buildSymmetricKeyCard() {
-        JPanel card = new JPanel(new BorderLayout(8, 0));
+        JPanel card = new JPanel(new BorderLayout(8, 12));
         card.setOpaque(false);
 
-        JPanel left = new JPanel(new BorderLayout(0, 4));
-        left.setOpaque(false);
+        // ── Hàng cấu hình: Key Size | Mode | Padding (ngang nhau) ──
+        JPanel configPanel = new JPanel(new GridLayout(1, 3, 14, 0));
+        configPanel.setOpaque(false);
 
-        // Key size (chỉ hiển thị cho AES)
-        JPanel sizePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        sizePanel.setOpaque(false);
-        JLabel sizeLabel = new JLabel("Key Size (bits):");
-        sizeLabel.setFont(new Font("SansSerif", Font.BOLD, 10));
-        sizeLabel.setForeground(MainFrame.TXT_LABEL);
-        sizePanel.add(sizeLabel);
-        sizePanel.add(keySizeCombo);
+        configPanel.add(wrapLabeled("KÍCH THƯỚC KHÓA (bits)", keySizeCombo));
+        configPanel.add(wrapLabeled("MODE OF OPERATION", modeCombo));
+        configPanel.add(wrapLabeled("PADDING SCHEME", paddingCombo));
 
-        JLabel keyAlgo = new JLabel("KEY");
-        keyAlgo.setName("cipherAlgo");
-        keyAlgo.setFont(new Font("SansSerif", Font.BOLD, 10));
-        keyAlgo.setForeground(MainFrame.TXT_LABEL);
+        // ── Nhãn KEY + vùng hiển thị khóa ──
+        JLabel keyLabel = new JLabel("KHÓA");
+        keyLabel.setName("cipherAlgo");
+        keyLabel.setFont(new Font("SansSerif", Font.BOLD, 10));
+        keyLabel.setForeground(MainFrame.TXT_LABEL);
 
         JScrollPane scroll = new JScrollPane(keyArea);
         scroll.setBorder(BorderFactory.createLineBorder(MainFrame.BORDER_CLR));
 
-        JPanel keyContent = new JPanel(new BorderLayout(0, 6));
+        JPanel keyContent = new JPanel(new BorderLayout(0, 8));
         keyContent.setOpaque(false);
-        keyContent.add(sizePanel, BorderLayout.NORTH);
-        keyContent.add(keyAlgo, BorderLayout.CENTER);
+        keyContent.add(configPanel, BorderLayout.NORTH);
+        keyContent.add(keyLabel, BorderLayout.CENTER);
         keyContent.add(scroll, BorderLayout.SOUTH);
 
-        left.add(keyContent, BorderLayout.CENTER);
-
-        card.add(left, BorderLayout.CENTER);
+        card.add(keyContent, BorderLayout.CENTER);
         card.add(buildKeyButtonRow(), BorderLayout.SOUTH);
+
         return card;
     }
 
     private JPanel buildKeyButtonRow() {
-        JPanel row = new JPanel(new FlowLayout((FlowLayout.CENTER)));
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER));
         row.setOpaque(false);
         row.setBorder(new EmptyBorder(18, 0, 0, 0));
 
@@ -113,7 +117,6 @@ public class FileSelectorPanel extends JPanel {
             }
         });
         row.add(genButton);
-
 
         importButton = createButton("Nhập khóa từ file", new Color(70, 70, 70));
         importButton.addActionListener(e -> {
@@ -141,35 +144,69 @@ public class FileSelectorPanel extends JPanel {
         if ("Bất đối xứng".equals(type)) {
             algoCombo.removeAllItems();
             algoCombo.addItem("RSA");
-            keyCardLayout.show(keyCardPanel, "Symmetric"); // tạm dùng card symmetric (có thể mở rộng sau)
         } else {
             if (algoCombo.getItemCount() != SYMMETRIC_ALGOS.length) {
                 algoCombo.removeAllItems();
                 for (String a : SYMMETRIC_ALGOS) algoCombo.addItem(a);
             }
-            keyCardLayout.show(keyCardPanel, "Symmetric");
-            onAlgoChanged();
         }
+        keyCardLayout.show(keyCardPanel, "Symmetric");
+        onAlgoChanged();
     }
 
     private void onAlgoChanged() {
         String algo = (String) algoCombo.getSelectedItem();
+        if (algo == null) return;
+
         AFileCipher cipher = fileController.getCipher(algo);
+
+        // 1. Key Size
         keySizeCombo.removeAllItems();
         for (Integer size : cipher.getKeySizes()) {
             keySizeCombo.addItem(size);
         }
+        if (keySizeCombo.getItemCount() > 0) {
+            keySizeCombo.setSelectedIndex(keySizeCombo.getItemCount() - 1); // chọn size lớn nhất mặc định
+        }
+
+        // 2. Mode
+        modeCombo.removeAllItems();
+        for (String m : cipher.getSupportedModes()) {
+            modeCombo.addItem(m);
+        }
+        if (modeCombo.getItemCount() > 0) modeCombo.setSelectedIndex(0);
+
+        // 3. Padding
+        paddingCombo.removeAllItems();
+        for (String p : cipher.getSupportedPaddings()) {
+            paddingCombo.addItem(p);
+        }
+        if (paddingCombo.getItemCount() > 0) paddingCombo.setSelectedIndex(0);
+
         updateKeyDescription(algo);
+        updateCipherConfig();   // đồng bộ ngay vào cipher
+    }
+
+    private void updateCipherConfig() {
+        String algo = (String) algoCombo.getSelectedItem();
+        if (algo == null) return;
+        AFileCipher cipher = fileController.getCipher(algo);
+
+        String selectedMode = (String) modeCombo.getSelectedItem();
+        String selectedPadding = (String) paddingCombo.getSelectedItem();
+
+        if (selectedMode != null) cipher.setMode(selectedMode);
+        if (selectedPadding != null) cipher.setPadding(selectedPadding);
     }
 
     private void updateKeyDescription(String algo) {
-        String algorithm = switch (algo) {
+        String text = switch (algo) {
             case "AES" -> "KEY — 128/192/256 bit";
             case "DES" -> "KEY — 64 bit";
             case "RSA" -> "KEY — Public / Private Key";
             default -> "KEY";
         };
-        selectCipherAlgo(keyCardPanel, "cipherAlgo", algorithm);
+        selectCipherAlgo(keyCardPanel, "cipherAlgo", text);
     }
 
     private void selectCipherAlgo(Container c, String name, String text) {
@@ -183,15 +220,16 @@ public class FileSelectorPanel extends JPanel {
         }
     }
 
+    // ==================== HELPER COMPONENTS ====================
     private JTextArea makeKeyArea() {
-        JTextArea ta = new JTextArea(3, 25);
+        JTextArea ta = new JTextArea(4, 30);
         ta.setFont(new Font("Monospaced", Font.PLAIN, 12));
         ta.setBackground(MainFrame.BG_INPUT);
         ta.setForeground(MainFrame.TXT_MAIN);
         ta.setCaretColor(MainFrame.TXT_MAIN);
         ta.setLineWrap(true);
         ta.setWrapStyleWord(false);
-        ta.setBorder(new EmptyBorder(6, 8, 6, 8));
+        ta.setBorder(new EmptyBorder(8, 10, 8, 10));
         ta.setEditable(false);
         return ta;
     }
@@ -219,8 +257,6 @@ public class FileSelectorPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(100, 26));
-        btn.setMaximumSize(new Dimension(100, 26));
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
         return btn;
     }
 
@@ -230,7 +266,7 @@ public class FileSelectorPanel extends JPanel {
         cb.setBackground(MainFrame.BG_INPUT);
         cb.setForeground(MainFrame.TXT_MAIN);
         cb.setBorder(BorderFactory.createLineBorder(MainFrame.BORDER_CLR));
-        cb.setPreferredSize(new Dimension(200, 32));
+        cb.setPreferredSize(new Dimension(180, 32));
         return cb;
     }
 
@@ -245,16 +281,4 @@ public class FileSelectorPanel extends JPanel {
         return p;
     }
 
-    // Getter tiện lợi khi kết nối với FilePanel
-    public String getSelectedAlgorithm() {
-        return (String) algoCombo.getSelectedItem();
-    }
-
-    public int getSelectedKeySize() {
-        return (int) keySizeCombo.getSelectedItem();
-    }
-
-    public String getKeyText() {
-        return keyArea.getText().trim();
-    }
 }

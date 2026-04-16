@@ -7,22 +7,23 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class AES extends AFileCipher {
+
+    public AES() {
+        super("AES", "CBC", "PKCS5Padding");
+        keySizes = Arrays.asList(128, 192, 256);
+    }
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
         AES aes = new AES();
         aes.genKey(aes.keySizes.get(2));
-        aes.encryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12.png","C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png");
-        aes.decryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png","C:\\Users\\lamdo\\Downloads\\artplayer_06_12_dec.png");
+        aes.encryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12.png", "C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png");
+        aes.decryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png", "C:\\Users\\lamdo\\Downloads\\artplayer_06_12_dec.png");
 
-    }
-
-    public AES() {
-        super("AES/CBC/PKCS5Padding"); // default mode and padding
-        keySizes = Arrays.asList(128,192,256);
     }
 
     @Override
@@ -31,9 +32,15 @@ public class AES extends AFileCipher {
     }
 
     @Override
-    public List<Integer> getSupportedKeySizes() {
-        return keySizes;
+    public List<String> getSupportedModes() {
+        return Arrays.asList("ECB", "CBC", "CTR", "CFB", "OFB", "GCM");
     }
+
+    @Override
+    public List<String> getSupportedPaddings() {
+        return Arrays.asList("PKCS5Padding", "NoPadding");
+    }
+
 
     @Override
     public SecretKey genKey(int keySize) throws NoSuchAlgorithmException {
@@ -44,13 +51,14 @@ public class AES extends AFileCipher {
         key = keyGen.generateKey();
         return key;
     }
+
     // ==================== encrypt / decrypt text ====================
     @Override
     public byte[] encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        IvParameterSpec initVector =  new IvParameterSpec(new byte[16]);
-        Cipher cipher = Cipher.getInstance(transformation);
-        cipher.init(Cipher.ENCRYPT_MODE, key,initVector);
+        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
         byte[] cipherData = data.getBytes(StandardCharsets.UTF_8);
         return cipher.doFinal(cipherData);
     }
@@ -58,18 +66,19 @@ public class AES extends AFileCipher {
     @Override
     public String decrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        IvParameterSpec initVector =  new IvParameterSpec(new byte[16]);
-        Cipher cipher = Cipher.getInstance(transformation);
-        cipher.init(Cipher.DECRYPT_MODE, key,initVector);
+        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.DECRYPT_MODE, key, initVector);
         byte[] decryptedData = cipher.doFinal(data);
         return new String(decryptedData, StandardCharsets.UTF_8);
     }
+
     // ==================== encryptFile / decryptFile ====================
     @Override
     public boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-        IvParameterSpec initVector =  new IvParameterSpec(new byte[16]);
-        Cipher cipher = Cipher.getInstance(transformation);
-        cipher.init(Cipher.ENCRYPT_MODE, key,initVector);
+        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des));
@@ -94,9 +103,9 @@ public class AES extends AFileCipher {
     @Override
     public boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        IvParameterSpec initVector =  new IvParameterSpec(new byte[16]);
-        Cipher cipher = Cipher.getInstance(transformation);
-        cipher.init(Cipher.DECRYPT_MODE, key,initVector);
+        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.DECRYPT_MODE, key, initVector);
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des));

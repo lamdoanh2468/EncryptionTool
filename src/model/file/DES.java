@@ -7,66 +7,30 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
 
 public class DES extends AFileCipher {
 
     public DES() {
-        super("DES/CBC/PKCS5Padding");
-        keySizes = List.of(56);   //
+        super("DES", "CBC", "PKCS5Padding");
+        keySizes = List.of(56);
     }
 
-    public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, IOException, InvalidAlgorithmParameterException {
-        String data = "Hạ nghị sĩ Đảng Dân chủ Seth Moulton (bang Massachusetts), thành viên Ủy ban Quân dịch Hạ viện, đã công khai chỉ trích cách tiếp cận của Tổng thống Donald Trump đối với cuộc xung đột tại Iran sau sự cố máy bay chiến đấu Mỹ bị bắn hạ.";
-
+    // ==================== TEST ====================
+    public static void main(String[] args) throws Exception {
         DES des = new DES();
-        des.genKey(des.keySizes.getFirst());
-        des.encryptFile("/home/lamdoanh2468/Desktop/1.pdf", "/home/lamdoanh2468/Desktop/2.pdf");
-        des.decryptFile("/home/lamdoanh2468/Desktop/2.pdf", "/home/lamdoanh2468/Desktop/3.pdf");
+        des.genKey(56);
 
+        String original = "Hạ nghị sĩ Đảng Dân chủ Seth Moulton..."; // dữ liệu test của bạn
+        System.out.println("Original : " + original);
+
+        byte[] encrypted = des.encrypt(original);
+        String decrypted = des.decrypt(encrypted);
+
+        System.out.println("Decrypted: " + decrypted);
+        System.out.println("✅ DES hoạt động đúng với transformation động!");
     }
-
-    @Override
-    public SecretKey genKey(int keySize) throws NoSuchAlgorithmException {
-        // TODO Auto-generated method stub
-        validateKeySize(keySize);
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
-        keyGenerator.init(keySize);
-        key = keyGenerator.generateKey();
-        return key;
-    }
-
-    @Override
-    public byte[] encrypt(String text) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-        // TODO Auto-generated method stub
-        IvParameterSpec initVector = new IvParameterSpec(new byte[8]);
-        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, this.key, initVector);
-
-        byte[] data = text.getBytes();
-        return cipher.doFinal(data);
-
-    }
-
-    @Override
-    public String decrypt(byte[] text) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-        // TODO Auto-generated method stub
-        IvParameterSpec initVector = new IvParameterSpec(new byte[8]);
-        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, this.key, initVector);
-        byte[] data = cipher.doFinal(text);
-
-        return new String(data, StandardCharsets.UTF_8);
-
-    }
-    // ==================================
-
-    /*
-     * BIS ----CIS-encrypt-read->>>>>>>> BOS
-     *
-     *
-     *
-     */
 
     @Override
     public String getAlgorithm() {
@@ -74,60 +38,79 @@ public class DES extends AFileCipher {
     }
 
     @Override
-    public void loadKey(SecretKey key) {
-        // TODO Auto-generated method stub
-        this.key = key;
+    public List<String> getSupportedModes() {
+        // Các mode phổ biến của DES (ECB không khuyến khích dùng cho file)
+        return Arrays.asList("ECB", "CBC", "CTR", "CFB", "OFB");
     }
 
     @Override
-    public List<Integer> getSupportedKeySizes() {
-        return keySizes;
+    public List<String> getSupportedPaddings() {
+        return Arrays.asList("PKCS5Padding", "NoPadding");
     }
 
     @Override
-    public boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-        // TODO Auto-generated method stub
-        IvParameterSpec initVector = new IvParameterSpec(new byte[8]);
-        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, this.key, initVector);
+    public SecretKey genKey(int keySize) throws NoSuchAlgorithmException {
+        validateKeySize(keySize);
+        KeyGenerator keyGen = KeyGenerator.getInstance("DES");
+        keyGen.init(keySize);
+        key = keyGen.generateKey();
+        return key;
+    }
 
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des));
-        CipherInputStream cis = new CipherInputStream(bis, cipher);
+    // ==================== TEXT ENCRYPT / DECRYPT ====================
+    @Override
+    public byte[] encrypt(String data) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
+        IvParameterSpec iv = new IvParameterSpec(new byte[8]); // DES block = 8 bytes
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        return cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+    }
 
-        int count;
-        byte[] readByte = new byte[1024];
-        while ((count = cis.read(readByte)) != -1) {
-            bos.write(readByte, 0, count);
+    @Override
+    public String decrypt(byte[] data) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
+        IvParameterSpec iv = new IvParameterSpec(new byte[8]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+        byte[] decrypted = cipher.doFinal(data);
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    // ==================== FILE ENCRYPT / DECRYPT ====================
+    @Override
+    public boolean encryptFile(String src, String des) throws InvalidAlgorithmParameterException, InvalidKeyException, IOException, NoSuchPaddingException, NoSuchAlgorithmException {
+        IvParameterSpec iv = new IvParameterSpec(new byte[8]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
+             CipherInputStream cis = new CipherInputStream(bis, cipher);
+             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des))) {
+
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = cis.read(buffer)) != -1) {
+                bos.write(buffer, 0, count);
+            }
         }
-
-        cis.close();
-        bos.flush();
-        bos.close();
-
         return true;
     }
 
     @Override
-    public boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-        IvParameterSpec initVector = new IvParameterSpec(new byte[8]);
-        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key, initVector);
+    public boolean decryptFile(String src, String des) throws InvalidAlgorithmParameterException, InvalidKeyException, IOException, NoSuchPaddingException, NoSuchAlgorithmException {
+        IvParameterSpec iv = new IvParameterSpec(new byte[8]);
+        Cipher cipher = Cipher.getInstance(getTransformation());
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
 
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des));
-        CipherOutputStream cos = new CipherOutputStream(bos, cipher);
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
+             CipherOutputStream cos = new CipherOutputStream(
+                     new BufferedOutputStream(new FileOutputStream(des)), cipher)) {
 
-        int count = 0;
-        byte[] readByte = new byte[1024];
-        while ((count = bis.read(readByte)) != -1) {
-            cos.write(readByte, 0, count);
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = bis.read(buffer)) != -1) {
+                cos.write(buffer, 0, count);
+            }
         }
-
-        bis.close();
-        bos.flush();
-        bos.close();
-
         return true;
     }
 }
