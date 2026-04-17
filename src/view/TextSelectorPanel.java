@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class TextSelectorPanel extends JPanel {
     private static final String[] SYMMETRIC_ALGOS =
-            {"Caesar", "Affine", "Vigenère", "Hill", "Substitution", "Permutation"};
+            {"Caesar", "Affine", "Vigenere", "Hill", "Thay thế", "Hoán vị"};
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
     public final JTextArea keyArea;
@@ -18,8 +18,7 @@ public class TextSelectorPanel extends JPanel {
     public JButton genButton;
     public JButton importButton;
     public JButton exportButton;
-    public JComboBox<String> fileCipherAlgoCombo;
-    public JComboBox<Integer> keySizeCombo;
+
     public TextController textController;
 
     public TextSelectorPanel(TextController textController) {
@@ -147,13 +146,13 @@ public class TextSelectorPanel extends JPanel {
 
     private void updateKeyHint(String algo) {
         String algorithm = switch (algo) {
-            case "Caesar" -> "KEY  —  số nguyên 0–25";
-            case "Affine" -> "KEY  —  Hai tham số a và b";
-            case "Vigenère" -> "KEY  —  chuỗi chữ cái a-z";
-            case "Hill" -> "KEY  —  ma trận 2×2";
-            case "Substitution" -> "KEY  —  chuỗi 26 ký tự hoán vị của A-Z";
-            case "Permutation" -> "KEY  —  thứ tự cột, cách dấu phẩy";
-            default -> "KEY";
+            case "Caesar" -> "KHÓA  —  Số nguyên (0–25)";
+            case "Affine" -> "KHÓA  —  Hai số a và b (a phải nguyên tố cùng nhau với 26)";
+            case "Vigenere" -> "KHÓA  —  Chuỗi chữ cái (a–z)";
+            case "Hill" -> "KHÓA  —  Ma trận 2×2 (các phần tử là số)";
+            case "Thay thế" -> "KHÓA  —  Chuỗi 26 ký tự A–Z không trùng lặp";
+            case "Hoán vị" -> "KHÓA  —  Thứ tự cột (các số, cách nhau bằng dấu phẩy)";
+            default -> "KHÓA";
         };
         selectCipherAlgo(keyCardPanel, "cipherAlgo", algorithm);
     }

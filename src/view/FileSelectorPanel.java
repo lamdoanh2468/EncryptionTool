@@ -22,6 +22,7 @@ public class FileSelectorPanel extends JPanel {
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
 
     public JButton genButton;
+    public JButton copyButton;
     public JButton importButton;
     public JButton exportButton;
     public FileController fileController;
@@ -71,15 +72,13 @@ public class FileSelectorPanel extends JPanel {
         JPanel card = new JPanel(new BorderLayout(8, 12));
         card.setOpaque(false);
 
-        // ── Hàng cấu hình: Key Size | Mode | Padding (ngang nhau) ──
         JPanel configPanel = new JPanel(new GridLayout(1, 3, 14, 0));
         configPanel.setOpaque(false);
 
-        configPanel.add(wrapLabeled("KÍCH THƯỚC KHÓA (bits)", keySizeCombo));
+        configPanel.add(wrapLabeled("KÍCH THƯỚC KHÓA", keySizeCombo));
         configPanel.add(wrapLabeled("MODE OF OPERATION", modeCombo));
-        configPanel.add(wrapLabeled("PADDING SCHEME", paddingCombo));
+        configPanel.add(wrapLabeled("PADDING", paddingCombo));
 
-        // ── Nhãn KEY + vùng hiển thị khóa ──
         JLabel keyLabel = new JLabel("KHÓA");
         keyLabel.setName("cipherAlgo");
         keyLabel.setFont(new Font("SansSerif", Font.BOLD, 10));
@@ -118,15 +117,21 @@ public class FileSelectorPanel extends JPanel {
         });
         row.add(genButton);
 
-        importButton = createButton("Nhập khóa từ file", new Color(70, 70, 70));
+        copyButton = createButton("Sao chép khóa", new Color(99, 102, 241));
+        copyButton.addActionListener(e -> {
+          fileController.copyKey(keyArea);
+        });
+        row.add(copyButton);
+
+        importButton = createButton("Nhập khóa từ file", new Color(75, 85, 99));
         importButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
             AFileCipher cipher = fileController.getCipher(algo);
-            fileController.importKey(cipher);
+            fileController.importKey(cipher,keyArea);
         });
         row.add(importButton);
 
-        exportButton = createButton("Xuất khóa ra file", new Color(70, 70, 70));
+        exportButton = createButton("Xuất khóa ra file", new Color(16, 185, 129));
         exportButton.addActionListener(e -> {
             try {
                 fileController.exportKey();
@@ -135,6 +140,7 @@ public class FileSelectorPanel extends JPanel {
             }
         });
         row.add(exportButton);
+
 
         return row;
     }
@@ -220,7 +226,6 @@ public class FileSelectorPanel extends JPanel {
         }
     }
 
-    // ==================== HELPER COMPONENTS ====================
     private JTextArea makeKeyArea() {
         JTextArea ta = new JTextArea(4, 30);
         ta.setFont(new Font("Monospaced", Font.PLAIN, 12));

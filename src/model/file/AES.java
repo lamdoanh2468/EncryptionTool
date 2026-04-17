@@ -75,7 +75,7 @@ public class AES extends AFileCipher {
 
     // ==================== encryptFile / decryptFile ====================
     @Override
-    public boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+    public boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
         IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(getTransformation());
         cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
@@ -101,7 +101,7 @@ public class AES extends AFileCipher {
     }
 
     @Override
-    public boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    public boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
         IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(getTransformation());

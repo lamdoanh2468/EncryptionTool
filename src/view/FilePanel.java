@@ -1,18 +1,10 @@
 package view;
 
 import controller.FileController;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 public class FilePanel extends JPanel {
 
@@ -72,9 +64,8 @@ public class FilePanel extends JPanel {
             String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
             try {
                 fileController.encryptFile(fileController.getCipher(algo), selectedFile);
-            } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                     NoSuchAlgorithmException | IOException | BadPaddingException | InvalidKeyException ex) {
-                throw new RuntimeException(ex);
+            } catch (Exception ex) {
+                fileController.handleCipherException(ex, "mã hóa", "encrypt");
             }
         });
         decryptFileBtn = makeActionButton("Giải mã File", new Color(60, 180, 120));
@@ -82,10 +73,8 @@ public class FilePanel extends JPanel {
             String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
             try {
                 fileController.decryptFile(fileController.getCipher(algo), selectedFile);
-            } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                     NoSuchAlgorithmException | IOException | BadPaddingException | InvalidKeyException ex) {
-                throw new RuntimeException(ex);
-            }
+            }catch (Exception ex) {
+                fileController.handleCipherException(ex, "giải mã", "decrypt");            }
         });
         encryptFileBtn.setPreferredSize(new Dimension(180, 44));
         decryptFileBtn.setPreferredSize(new Dimension(180, 44));

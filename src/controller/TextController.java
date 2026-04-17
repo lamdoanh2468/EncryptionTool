@@ -131,16 +131,16 @@ public class TextController {
     public void copyKey(JTextArea keyArea) {
         Toolkit.getDefaultToolkit().getSystemClipboard()
                 .setContents(new StringSelection(keyArea.getText()), null);
-        JOptionPane.showMessageDialog(null, "Sao chép thành công");
+        JOptionPane.showMessageDialog(null, "Sao chép khóa thành công");
     }
     public ATextCipher<?> getCipher(String algoName) {
         if (algoName == null) return null;
         return switch (algoName) {
             case "Caesar" -> caesar;
             case "Affine" -> affine;
-            case "Vigenère" -> vigenere;
-            case "Substitution" -> substitution;
-            case "Permutation" -> permutation;
+            case "Vigenere" -> vigenere;
+            case "Thay thế" -> substitution;
+            case "Hoán vị" -> permutation;
             case "Hill" -> hill;
             default -> null;
         };

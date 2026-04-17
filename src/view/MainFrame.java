@@ -25,8 +25,9 @@ public class MainFrame extends JFrame {
 
     public TextController textController = new TextController(this);
     public FileController fileController = new FileController(this);
+
     public MainFrame() throws Exception {
-        setTitle("Cipher Tool");
+        setTitle("Tool mã hóa");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(820, 620);
         setMinimumSize(new Dimension(700, 520));

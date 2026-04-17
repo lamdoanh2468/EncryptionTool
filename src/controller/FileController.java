@@ -11,6 +11,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -48,7 +50,7 @@ public class FileController {
         return null;
     }
 
-    public void genKey(AFileCipher cipher, Integer keySize,JTextArea keyArea) throws NoSuchAlgorithmException {
+    public void genKey(AFileCipher cipher, Integer keySize, JTextArea keyArea) throws NoSuchAlgorithmException {
         currentKey = cipher.genKey(keySize);
         cipher.loadKey(currentKey);
         JOptionPane.showMessageDialog(null, "Tạo khóa thành công");
@@ -61,7 +63,7 @@ public class FileController {
 
     }
 
-    public void importKey(AFileCipher cipher) {
+    public void importKey(AFileCipher cipher,JTextArea keyArea) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn file chứa khóa");
         int userSelection = fileChooser.showOpenDialog(null);
@@ -77,6 +79,7 @@ public class FileController {
                 currentKey = new SecretKeySpec(decodeKey, cipher.getAlgorithm());
                 System.out.println(currentKey);
                 JOptionPane.showMessageDialog(view, "Nhập khóa từ file thành công");
+                keyArea.setText(encodeKey);
                 view.filePanel.statusLabel.setText("Đã nhập khóa, chọn mã hóa hoặc giải mã");
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(view, "Lỗi khi nhập key", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -127,7 +130,7 @@ public class FileController {
         }
     }
 
-    public void encryptFile(AFileCipher cipher, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException {
+    public void encryptFile(AFileCipher cipher, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         if (currentKey == null) {
             JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
@@ -169,6 +172,45 @@ public class FileController {
         }
     }
 
+    public void handleCipherException(Exception ex, String action, String operation) {
+        Throwable root = ex;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        String title = "Lỗi " + action + " file";
+
+        String message = "<html>" + buildErrorMessage(root, ex, action) + "</html>";
+
+        JOptionPane.showMessageDialog(view, message, title, JOptionPane.ERROR_MESSAGE);
+
+    }
+
+    private String buildErrorMessage(Throwable root, Exception ex, String action) {
+
+        if (root instanceof InvalidKeyException) {
+            return "<b>Khóa không hợp lệ hoặc không phù hợp với thuật toán</b><br>" + "• Khóa chưa được tạo<br>" + "• Hoặc khóa import sai kích thước (AES: 16/24/32 bytes, DES: 8 bytes)<br>" + "<br>Vui lòng tạo khóa mới hoặc import lại khóa đúng.";
+        } else if (root instanceof BadPaddingException) {
+            return "<b>Giải mã thất bại (Bad Padding)</b><br>" + "Nguyên nhân thường gặp:<br>" + "• Khóa sai<br>" + "• File không phải là file đã được mã hóa bởi chương trình này<br>" + "• File bị hỏng hoặc đã bị chỉnh sửa sau khi mã hóa";
+        } else if (root instanceof IllegalBlockSizeException) {
+            return "<b>Kích thước khối dữ liệu không hợp lệ</b><br>" + "File có thể bị hỏng, không đầy đủ, hoặc không phải định dạng mã hóa hợp lệ.";
+        } else if (root instanceof InvalidAlgorithmParameterException) {
+            return "<b>Tham số thuật toán không hợp lệ</b><br>" + "Thường xảy ra khi IV (Initialization Vector) bị sai hoặc mode mã hóa không đúng.";
+        } else if (root instanceof NoSuchAlgorithmException) {
+            return "<b>Thuật toán không được hỗ trợ</b><br>" + "Máy tính của bạn không hỗ trợ thuật toán " + (action.contains("Mã hóa") ? "AES/DES" : "này") + ".";
+        } else if (root instanceof NoSuchPaddingException) {
+            return "<b>Chế độ Padding không được hỗ trợ</b><br>" + "Vấn đề liên quan đến cấu hình mã hóa (thường hiếm gặp).";
+        } else if (ex instanceof IOException) {
+            return "<b>Lỗi đọc/ghi file</b><br>" + "• File nguồn không tồn tại<br>" + "• Không có quyền đọc/ghi<br>" + "• Đường dẫn lưu file bị trùng hoặc bị khóa";
+        } else {
+            return " <b>Đã xảy ra lỗi không xác định khi " + action.toLowerCase() + " file</b><br>" + "<small>Chi tiết kỹ thuật: " + ex.getClass().getSimpleName() + " – " + ex.getMessage() + "</small>";
+        }
+    }
+
+    public void copyKey(JTextArea keyArea) {
+        Toolkit.getDefaultToolkit().getSystemClipboard()
+                .setContents(new StringSelection(keyArea.getText()), null);
+        JOptionPane.showMessageDialog(null, "Sao chép khóa thành công");
+    }
     public AFileCipher getCipher(String algoName) {
         if (algoName == null) return null;
         return switch (algoName) {
