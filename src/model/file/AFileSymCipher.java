@@ -11,14 +11,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 
-public abstract class AFileCipher implements IFileCipher {
+public abstract class AFileSymCipher implements IFileSymCipher {
     protected final String algorithm;
     protected SecretKey key;
     protected String mode;
     protected String padding;
     protected List<Integer> keySizes;
 
-    public AFileCipher(String algorithm, String defaultMode, String defaultPadding) {
+    public AFileSymCipher(String algorithm, String defaultMode, String defaultPadding) {
         this.algorithm = algorithm;
         this.mode = defaultMode;
         this.padding = defaultPadding;
@@ -89,7 +89,8 @@ public abstract class AFileCipher implements IFileCipher {
 
     public abstract String decrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
 
-    public abstract boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException;
+    public abstract boolean encryptFile(String src, String des)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException;
 
     public abstract boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
 

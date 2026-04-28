@@ -1,6 +1,9 @@
 //import controller.FileController;
+
+import controller.FileController;
 import controller.TextController;
 import view.MainFrame;
+
 import javax.swing.*;
 
 public class Main {
@@ -12,8 +15,6 @@ public class Main {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            new TextController(view);
-//            new FileController(view);
             view.setVisible(true);
         });
     }

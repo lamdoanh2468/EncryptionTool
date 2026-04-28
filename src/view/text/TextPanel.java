@@ -1,6 +1,7 @@
-package view;
+package view.text;
 
 import controller.TextController;
+import view.MainFrame;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -184,8 +185,7 @@ public class TextPanel extends JPanel {
 
         clearBtn = createButton("Xóa tất cả", new Color(100, 40, 40));
         clearBtn.addActionListener(e -> {
-            inputArea.setText("");
-            outputArea.setText("");
+           clearAll();
         });
 
         btnRow.add(copyBtn);
@@ -228,14 +228,6 @@ public class TextPanel extends JPanel {
     public void updateCount() {
         int len = inputArea.getText().length();
         charCountLabel.setText(len + " ký tự");
-    }
-
-    public String getInputText() {
-        return inputArea.getText();
-    }
-
-    public void setOutputText(String t) {
-        outputArea.setText(t);
     }
 
     public void clearAll() {

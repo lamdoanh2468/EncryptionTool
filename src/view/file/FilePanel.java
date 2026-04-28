@@ -1,6 +1,8 @@
-package view;
+package view.file;
 
 import controller.FileController;
+import view.MainFrame;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -39,7 +41,7 @@ public class FilePanel extends JPanel {
         filePathLabel.setBackground(MainFrame.BG_INPUT);
         filePathLabel.setOpaque(true);
 
-        chooseFileBtn = makeActionButton("Chọn file...", MainFrame.ACCENT);
+        chooseFileBtn = createActionButton("Chọn file...", MainFrame.ACCENT);
         chooseFileBtn.addActionListener(
                 e -> selectedFile = fileController.chooseFile(filePathLabel)
         );
@@ -58,23 +60,28 @@ public class FilePanel extends JPanel {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
         btnPanel.setOpaque(false);
 
-        encryptFileBtn = makeActionButton("Mã hóa File", MainFrame.BLUE_BTN);
+        encryptFileBtn = createActionButton("Mã hóa File", MainFrame.BLUE_BTN);
         encryptFileBtn.addActionListener(e -> {
 
             String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
+            String mode = (String) fileSelectorPanel.modeCombo.getSelectedItem();
+            String padding = (String) fileSelectorPanel.paddingCombo.getSelectedItem();
             try {
-                fileController.encryptFile(fileController.getCipher(algo), selectedFile);
+                fileController.encryptFile(fileController.getSymCipher(algo),mode,padding, selectedFile);
             } catch (Exception ex) {
                 fileController.handleCipherException(ex, "mã hóa", "encrypt");
             }
         });
-        decryptFileBtn = makeActionButton("Giải mã File", new Color(60, 180, 120));
+        decryptFileBtn = createActionButton("Giải mã File", new Color(60, 180, 120));
         decryptFileBtn.addActionListener(e -> {
             String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
+            String mode = (String) fileSelectorPanel.modeCombo.getSelectedItem();
+            String padding = (String) fileSelectorPanel.paddingCombo.getSelectedItem();
             try {
-                fileController.decryptFile(fileController.getCipher(algo), selectedFile);
-            }catch (Exception ex) {
-                fileController.handleCipherException(ex, "giải mã", "decrypt");            }
+                fileController.decryptFile(fileController.getSymCipher(algo), mode, padding, selectedFile);
+            } catch (Exception ex) {
+                fileController.handleCipherException(ex, "giải mã", "decrypt");
+            }
         });
         encryptFileBtn.setPreferredSize(new Dimension(180, 44));
         decryptFileBtn.setPreferredSize(new Dimension(180, 44));
@@ -96,13 +103,9 @@ public class FilePanel extends JPanel {
         add(fileSelectorPanel, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
 
-        chooseFileBtn.addActionListener(e -> {
-
-        });
-
     }
 
-    private JButton makeActionButton(String text, Color color) {
+    private JButton createActionButton(String text, Color color) {
         JButton btn = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {

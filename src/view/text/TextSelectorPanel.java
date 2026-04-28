@@ -1,6 +1,7 @@
-package view;
+package view.text;
 
 import controller.TextController;
+import view.MainFrame;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

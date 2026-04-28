@@ -2,6 +2,8 @@ package view;
 
 import controller.FileController;
 import controller.TextController;
+import view.file.FilePanel;
+import view.text.TextPanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

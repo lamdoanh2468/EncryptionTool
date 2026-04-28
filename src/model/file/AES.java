@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
-public class AES extends AFileCipher {
+public class AES extends AFileSymCipher {
 
     public AES() {
         super("AES", "CBC", "PKCS5Padding");

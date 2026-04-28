@@ -10,26 +10,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
-public class DES extends AFileCipher {
+public class DES extends AFileSymCipher {
 
     public DES() {
         super("DES", "CBC", "PKCS5Padding");
         keySizes = List.of(56);
-    }
-
-    // ==================== TEST ====================
-    public static void main(String[] args) throws Exception {
-        DES des = new DES();
-        des.genKey(56);
-
-        String original = "Hạ nghị sĩ Đảng Dân chủ Seth Moulton..."; // dữ liệu test của bạn
-        System.out.println("Original : " + original);
-
-        byte[] encrypted = des.encrypt(original);
-        String decrypted = des.decrypt(encrypted);
-
-        System.out.println("Decrypted: " + decrypted);
-        System.out.println("✅ DES hoạt động đúng với transformation động!");
     }
 
     @Override
@@ -57,7 +42,6 @@ public class DES extends AFileCipher {
         return key;
     }
 
-    // ==================== TEXT ENCRYPT / DECRYPT ====================
     @Override
     public byte[] encrypt(String data) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException {
         IvParameterSpec iv = new IvParameterSpec(new byte[8]); // DES block = 8 bytes
@@ -75,7 +59,6 @@ public class DES extends AFileCipher {
         return new String(decrypted, StandardCharsets.UTF_8);
     }
 
-    // ==================== FILE ENCRYPT / DECRYPT ====================
     @Override
     public boolean encryptFile(String src, String des) throws InvalidAlgorithmParameterException, InvalidKeyException, IOException, NoSuchPaddingException, NoSuchAlgorithmException {
         IvParameterSpec iv = new IvParameterSpec(new byte[8]);
