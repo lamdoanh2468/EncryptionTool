@@ -16,19 +16,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class FileController {
     public static SecretKey currentKey;
     private final MainFrame view;
-
     // File cipher models
     private final AES aes = new AES();
     private final DES des = new DES();
     private final RSA rsa = new RSA();
+    public PublicKey currentPublicKey;
+    public PrivateKey currentPrivateKey;
 
     public FileController(MainFrame view) {
         this.view = view;
@@ -115,7 +116,6 @@ public class FileController {
         }
         return false;
 
-
     }
 
     private int[] getExpectedLength(String algorithm) {
@@ -124,12 +124,14 @@ public class FileController {
                 return new int[]{16, 24, 32};
             case "DES":
                 return new int[]{8};
+            case "RSA":
+                return new int[]{1024, 2048, 4096};
             default:
                 throw new IllegalArgumentException("Không hỗ trợ thuật toán này: " + algorithm);
         }
     }
 
-    public void encryptFile(AFileSymCipher cipher,String mode,String padding,File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void encryptFile(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         if (currentKey == null) {
             JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
@@ -152,7 +154,7 @@ public class FileController {
         }
     }
 
-    public void decryptFile(AFileSymCipher cipher,String mode,String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException {
+    public void decryptFile(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException {
         if (currentKey == null) {
             JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
@@ -231,6 +233,7 @@ public class FileController {
             default -> null;
         };
     }
+
     public AFileSymCipher getConfiguredSymCipher(String algoName, String mode, String padding) {
         AFileSymCipher cipher = getSymCipher(algoName);
         if (cipher != null) {
@@ -239,9 +242,100 @@ public class FileController {
         }
         return cipher;
     }
+
     public void genPairKey(String algorithm, int keySize, JTextArea pubKeyArea, JTextArea privKeyArea) throws NoSuchAlgorithmException, IOException {
         AFileAsymCipher asymCipher = getAsymCipher(algorithm);
 
+        // Generate key pair
+        asymCipher.genKeyPair(algorithm, keySize, "keypair");
+        String publicKey = asymCipher.getPublicKeyString();
+        String privateKey = asymCipher.getPrivateKeyString();
+        // Set key text to text area
+        pubKeyArea.setText(publicKey);
+        privKeyArea.setText(privateKey);
+        JOptionPane.showMessageDialog(view, "Tạo cặp khoá thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        view.filePanel.statusLabel.setText(" Đâ tạo xong, vui lòng tiếp tục tạo khoá đối xứng");
+    }
+
+    public void importPublicKey(AFileAsymCipher cipher, JTextArea keyArea) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa khóa công khai");
+
+        int userSelection = fileChooser.showOpenDialog(view);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = fileChooser.getSelectedFile();
+
+        try {
+            String encodeKey = Files.readString(selectedFile.toPath()).trim();
+            byte[] decodedKey = Base64.getDecoder().decode(encodeKey);
+
+            KeyFactory keyFactory = KeyFactory.getInstance(cipher.getAsymAlgorithm());
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedKey);
+
+            currentPublicKey = keyFactory.generatePublic(keySpec);
+
+            keyArea.setText(encodeKey);
+            view.filePanel.statusLabel.setText("Đã nhập khóa, chọn mã hóa hoặc giải mã");
+
+            JOptionPane.showMessageDialog(view, "Nhập khóa công khai thành công");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Lỗi khi nhập public key",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    public void importPrivateKey(AFileAsymCipher cipher, JTextArea keyArea) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa khóa bí mật");
+
+        int userSelection = fileChooser.showOpenDialog(view);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = fileChooser.getSelectedFile();
+
+        try {
+            String encodedKey = Files.readString(selectedFile.toPath()).trim();
+            byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+
+            KeyFactory keyFactory = KeyFactory.getInstance(cipher.getAsymAlgorithm());
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKey);
+
+            currentPrivateKey = keyFactory.generatePrivate(keySpec);
+
+            keyArea.setText(encodedKey);
+            view.filePanel.statusLabel.setText("Đã nhập private key, chọn mã hóa hoặc giải mã");
+
+            JOptionPane.showMessageDialog(view, "Nhập private key thành công");
+
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "File không đúng định dạng Base64",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Lỗi khi nhập private key",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    public void exportAllKeys(AFileAsymCipher asymCipher, AFileSymCipher symCipher) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu cặp khoá công khai và riêng tư");
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -251,18 +345,23 @@ public class FileController {
             File selectedDir = fileChooser.getSelectedFile();
             String dirPath = selectedDir.getAbsolutePath();
 
+            if(asymCipher.getPrivateKey() == null || asymCipher.getPublicKeyString() == null){
+                JOptionPane.showMessageDialog(view, "Chưa tạo cặp khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             // Generate key pair
-            asymCipher.genKeyPair(algorithm, keySize, dirPath);
-            String publicKey = asymCipher.exportPublicKey(asymCipher.getPublicKey(),
+            asymCipher.exportPublicKey(asymCipher.getPublicKey(),
                     dirPath + File.separator + "public.key");
-            String privateKey = asymCipher.exportPrivateKey(asymCipher.getPrivateKey(),
+            asymCipher.exportPrivateKey(asymCipher.getPrivateKey(),
                     dirPath + File.separator + "private.key");
-            // Set key text to text area
-            pubKeyArea.setText(publicKey);
-            privKeyArea.setText(privateKey);
-            JOptionPane.showMessageDialog(view, "Lưu cặp khoá thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            view.filePanel.statusLabel.setText(" Đâ tạo xong, vui lòng tiếp tục tạo khoá đối xứng");
-        }
+            symCipher.exportKey(symCipher.getKey(), dirPath + File.separator + "symmetric.key");
 
+            JOptionPane.showMessageDialog(view, "Lưu khoá thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            view.filePanel.statusLabel.setText(" Đã lưu các khoá vào file thành công");
+        }
     }
+
 }
+
+
+

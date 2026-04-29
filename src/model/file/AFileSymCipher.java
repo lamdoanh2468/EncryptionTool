@@ -4,10 +4,13 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.List;
 
@@ -22,6 +25,10 @@ public abstract class AFileSymCipher implements IFileSymCipher {
         this.algorithm = algorithm;
         this.mode = defaultMode;
         this.padding = defaultPadding;
+    }
+
+    public SecretKey getKey() {
+        return key;
     }
 
     public List<Integer> getKeySizes() {
@@ -93,5 +100,16 @@ public abstract class AFileSymCipher implements IFileSymCipher {
             throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException;
 
     public abstract boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
+
+
+    public void exportKey(SecretKey key, String dest) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
+        byte[] keyEncoded = key.getEncoded();
+        String keyText = Base64.getEncoder().encodeToString(keyEncoded);
+        writer.write(keyText);
+        writer.flush();
+        writer.close();
+        System.out.println("Export key successful");
+    }
 
 }

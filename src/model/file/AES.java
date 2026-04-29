@@ -73,7 +73,7 @@ public class AES extends AFileSymCipher {
         return new String(decryptedData, StandardCharsets.UTF_8);
     }
 
-    // ==================== encryptFile / decryptFile ====================
+    // encryptFile / decryptFile
     @Override
     public boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
         IvParameterSpec initVector = new IvParameterSpec(new byte[16]);

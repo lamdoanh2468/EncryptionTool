@@ -38,14 +38,6 @@ public abstract class AFileAsymCipher implements IFileCipher {
         this(asymAlgorithm, defaultMode, defaultPadding, null);
     }
 
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
-    public  PrivateKey getPrivateKey() {
-        return privateKey;
-    }
-
     public String getAsymAlgorithm() {
         return asymAlgorithm;
     }
@@ -76,11 +68,24 @@ public abstract class AFileAsymCipher implements IFileCipher {
         privateKey = keyPair.getPrivate();
         publicKey = keyPair.getPublic();
 
-        exportPublicKey(publicKey, dest + File.separator + DEFAULT_PUBLIC_KEY_PATH);
-        exportPrivateKey(privateKey, dest + File.separator + DEFAULT_PRIVATE_KEY_PATH);
     }
 
-    public String exportPublicKey(PublicKey publicKey, String dest) throws IOException {
+    public PrivateKey getPrivateKey() {
+        return privateKey;
+    }
+
+    public  PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public String getPublicKeyString(){
+        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+    }
+    public String getPrivateKeyString(){
+        return Base64.getEncoder().encodeToString(privateKey.getEncoded());
+    }
+
+    public void exportPublicKey(PublicKey publicKey, String dest) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
         byte[] publicKeyEncoded = publicKey.getEncoded();
         String pubKeyText = Base64.getEncoder().encodeToString(publicKeyEncoded);
@@ -89,10 +94,9 @@ public abstract class AFileAsymCipher implements IFileCipher {
         writer.close();
         System.out.println("Export public key successful");
 
-        return pubKeyText;
     }
 
-    public String exportPrivateKey(PrivateKey privateKey, String dest) throws IOException {
+    public void exportPrivateKey(PrivateKey privateKey, String dest) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
         byte[] privateKeyEncoded = privateKey.getEncoded();
         String privateKeyText = Base64.getEncoder().encodeToString(privateKeyEncoded);
@@ -100,9 +104,7 @@ public abstract class AFileAsymCipher implements IFileCipher {
         writer.flush();
         writer.close();
         System.out.println("Export private key successful");
-        return privateKeyText;
     }
-
     public AFileSymCipher getSymCipher() {
         return symCipher;
     }
