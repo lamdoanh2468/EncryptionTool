@@ -36,6 +36,7 @@ public class AsymmetricPanel extends JPanel {
     public JButton genSymKeyButton;
     public JButton importPublicKeyButton;
     public JButton importPrivateKeyButton;
+    public JButton importSymKeyButton;
     public JButton exportKeyPairButton;
     public JButton removeAllButton;
 
@@ -126,6 +127,14 @@ public class AsymmetricPanel extends JPanel {
                     fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                     privateKeyArea
             );
+            try {
+                fileController.setAsymmetricCipherInfo(this);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        importSymKeyButton.addActionListener(e -> {
+            fileController.importKey(fileController.getSymCipher((String)symAlgoCombo.getSelectedItem()),symKeyArea);
         });
         exportKeyPairButton.addActionListener(e -> {
             try {
@@ -202,6 +211,7 @@ public class AsymmetricPanel extends JPanel {
         exportKeyPairButton = FilePanelUI.createOutlineButton("Xuất các khoá ", new Color(16, 185, 129));
         importPublicKeyButton = FilePanelUI.createOutlineButton("Nhập public key", new Color(75, 85, 99));
         importPrivateKeyButton = FilePanelUI.createOutlineButton("Nhập private key", new Color(75, 85, 99));
+        importSymKeyButton =FilePanelUI.createOutlineButton("Nhập sym key", new Color(75, 85, 99));
         removeAllButton = FilePanelUI.createOutlineButton("Xóa tất cả", new Color(255, 65, 54));
 
         row.add(genKeyPairButton);
@@ -209,6 +219,7 @@ public class AsymmetricPanel extends JPanel {
         row.add(exportKeyPairButton);
         row.add(importPublicKeyButton);
         row.add(importPrivateKeyButton);
+        row.add(importSymKeyButton);
         row.add(removeAllButton);
 
         return row;

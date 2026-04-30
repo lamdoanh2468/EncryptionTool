@@ -3,6 +3,7 @@ package controller;
 import model.file.*;
 import model.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
+import view.file.asymmetric.AsymmetricPanel;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -12,10 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -295,14 +293,6 @@ public class FileController {
         };
     }
 
-    public AFileSymCipher getConfiguredSymCipher(String algoName, String mode, String padding) {
-        AFileSymCipher cipher = getSymCipher(algoName);
-        if (cipher != null) {
-            cipher.setMode(mode);
-            cipher.setPadding(padding);
-        }
-        return cipher;
-    }
 
     public void genPairKey(String algorithm, int keySize, JTextArea pubKeyArea, JTextArea privKeyArea) throws NoSuchAlgorithmException, IOException {
         AFileAsymCipher asymCipher = getAsymCipher(algorithm);
@@ -402,6 +392,48 @@ public class FileController {
             );
         }
     }
+    public void importSymKey(AFileAsymCipher cipher, JTextArea keyArea) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa khóa bí mật");
+
+        int userSelection = fileChooser.showOpenDialog(view);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = fileChooser.getSelectedFile();
+
+        try {
+            String encodedKey = Files.readString(selectedFile.toPath()).trim();
+            byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+
+            KeyFactory keyFactory = KeyFactory.getInstance(cipher.getAsymAlgorithm());
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKey);
+
+            currentPrivateKey = keyFactory.generatePrivate(keySpec);
+
+            keyArea.setText(encodedKey);
+            view.filePanel.statusLabel.setText("Đã nhập private key, chọn mã hóa hoặc giải mã");
+
+            JOptionPane.showMessageDialog(view, "Nhập private key thành công");
+
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "File không đúng định dạng Base64",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Lỗi khi nhập private key",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
 
     public void exportAllKeys(AFileAsymCipher asymCipher, String mode, String padding, AFileSymCipher symCipher) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
@@ -441,7 +473,63 @@ public class FileController {
                 JOptionPane.INFORMATION_MESSAGE);
         view.filePanel.statusLabel.setText(" Đã lưu các khoá và thông tin thuật toán vào file thành công");
     }
+
+    public void setAsymmetricCipherInfo(AsymmetricPanel asymmetricPanel) throws IOException {
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa thông tin thuật toán");
+
+        int option = fileChooser.showOpenDialog(null);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(selectedFile));
+                String transformation = reader.readLine();
+                reader.close();
+
+                String[] asymParts = transformation.split("/");
+                String mode = asymParts[1];
+                String padding = asymParts[2];
+
+                asymmetricPanel.asymModeCombo.setSelectedItem(mode);
+                asymmetricPanel.asymPaddingCombo.setSelectedItem(padding);
+                JOptionPane.showMessageDialog(view, "Đã lấy xong thông tin thuật toán", "Thông Báo", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(view,
+                        "Không thể đọc thông tin thuật toán bất đối xứng",
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    public void setSymmetricCipherInfo(AsymmetricPanel asymmetricPanel) throws IOException {
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa thông tin thuật toán đối xứng");
+
+        int option = fileChooser.showOpenDialog(null);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(selectedFile));
+                String transformation = reader.readLine();
+                reader.close();
+
+                String[] symParts = transformation.split("/");
+                String mode = symParts[1];
+                String padding = symParts[2];
+
+                asymmetricPanel.asymModeCombo.setSelectedItem(mode);
+                asymmetricPanel.asymPaddingCombo.setSelectedItem(padding);
+                JOptionPane.showMessageDialog(view, "Đã lấy xong thông tin thuật toán", "Thông Báo", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(view,
+                        "Không thể đọc thông tin thuật toán",
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 }
+
 
 
 
