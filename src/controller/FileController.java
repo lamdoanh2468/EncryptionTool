@@ -403,7 +403,7 @@ public class FileController {
         }
     }
 
-    public void exportAllKeys(AFileAsymCipher asymCipher, AFileSymCipher symCipher) throws IOException {
+    public void exportAllKeys(AFileAsymCipher asymCipher, String mode, String padding, AFileSymCipher symCipher) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu cặp khoá công khai và riêng tư");
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -424,12 +424,26 @@ public class FileController {
                     dirPath + File.separator + "private.key");
             symCipher.exportKey(symCipher.getKey(), dirPath + File.separator + "symmetric.key");
 
-            JOptionPane.showMessageDialog(view, "Lưu khoá thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            view.filePanel.statusLabel.setText(" Đã lưu các khoá vào file thành công");
-        }
-    }
+            // Save asymmetric transformation
+            asymCipher.setAsymMode(mode);
+            asymCipher.setAsymPadding(padding);
+            asymCipher.exportTransformation(asymCipher.getTransformation(), dirPath + File.separator + "transformation.key");
 
+        }
+
+        JOptionPane.showMessageDialog(view,
+                "Xuất khoá thành công!\n\n" +
+                        "• public.key\n" +
+                        "• private.key\n" +
+                        "• symmetric.key\n\n" +
+                        "Transformation: " + asymCipher.getTransformation(),
+                "Thành công",
+                JOptionPane.INFORMATION_MESSAGE);
+        view.filePanel.statusLabel.setText(" Đã lưu các khoá và thông tin thuật toán vào file thành công");
+    }
 }
+
+
 
 
 

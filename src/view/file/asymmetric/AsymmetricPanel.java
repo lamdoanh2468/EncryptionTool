@@ -131,6 +131,8 @@ public class AsymmetricPanel extends JPanel {
             try {
                 fileController.exportAllKeys(
                         fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
+                        (String) asymModeCombo.getSelectedItem(),
+                        (String) asymPaddingCombo.getSelectedItem(),
                         fileController.getSymCipher((String) symAlgoCombo.getSelectedItem())
                 );
             } catch (IOException ex) {

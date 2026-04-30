@@ -2,6 +2,7 @@ package model.file;
 
 import javax.crypto.SecretKey;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.*;
@@ -101,6 +102,12 @@ public abstract class AFileAsymCipher implements IFileCipher {
         writer.flush();
         writer.close();
         System.out.println("Export private key successful");
+    }
+    public void exportTransformation(String transformation, String dirPath)throws IOException {
+        // Save asymmetric transformation
+        BufferedWriter writer = new BufferedWriter(new FileWriter(dirPath));
+        writer.write(transformation);
+        writer.close();
     }
 
     public AFileSymCipher getSymCipher() {
