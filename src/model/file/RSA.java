@@ -54,11 +54,19 @@ public class RSA extends AFileAsymCipher {
 
         String symAlgorithm = this.symCipher.getTransformation();
         Cipher symCipher = Cipher.getInstance(symAlgorithm);
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] ivBytes = new byte[16];
-        secureRandom.nextBytes(ivBytes);
-        IvParameterSpec iv = new IvParameterSpec(ivBytes);
-        symCipher.init(Cipher.ENCRYPT_MODE, symKey, iv);
+        byte[] ivBytes;
+        if (symAlgorithm.contains("/ECB/")) {
+            symCipher.init(Cipher.ENCRYPT_MODE, symKey);
+            ivBytes = new byte[0];
+        } else {
+            SecureRandom secureRandom = new SecureRandom();
+            int blockSize = symCipher.getBlockSize();
+            if (blockSize == 0) blockSize = 16;
+            ivBytes = new byte[blockSize];
+            secureRandom.nextBytes(ivBytes);
+            IvParameterSpec iv = new IvParameterSpec(ivBytes);
+            symCipher.init(Cipher.ENCRYPT_MODE, symKey, iv);
+        }
 
         FileInputStream fis = new FileInputStream(src);
 
@@ -122,8 +130,12 @@ public class RSA extends AFileAsymCipher {
 
         //READ DATA
         Cipher symCipher = Cipher.getInstance(symAlgorithm);
-        IvParameterSpec initVector = new IvParameterSpec(iv);
-        symCipher.init(Cipher.DECRYPT_MODE, decKey, initVector);
+        if (symAlgorithm.contains("/ECB/")) {
+            symCipher.init(Cipher.DECRYPT_MODE, decKey);
+        } else {
+            IvParameterSpec initVector = new IvParameterSpec(iv);
+            symCipher.init(Cipher.DECRYPT_MODE, decKey, initVector);
+        }
 
         CipherInputStream cis = new CipherInputStream(bis, symCipher);
         int count;

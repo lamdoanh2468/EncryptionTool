@@ -3,28 +3,34 @@ package view.file.asymmetric;
 import controller.FileController;
 import model.file.AFileAsymCipher;
 import model.file.AFileSymCipher;
+import model.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
 import view.file.FilePanelUI;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 public class AsymmetricPanel extends JPanel {
 
-    public final JComboBox<Integer> rsaKeySizeCombo;
-    public final JComboBox<String> rsaModeCombo;
-    public final JComboBox<String> rsaPaddingCombo;
-    public final JComboBox<String> asymSymAlgoCombo;
-    public final JComboBox<Integer> hybridSymKeySizeCombo;
-    public final JComboBox<String> hybridSymModeCombo;
+    // Asymmetric
+    public final JComboBox<Integer> asymKeySizeCombo;
+    public final JComboBox<String> asymModeCombo;
     public final JComboBox<String> asymPaddingCombo;
+
+    // Symmetric
+    public final JComboBox<String> symAlgoCombo;
+    public final JComboBox<String> symPaddingCombo;
+    public final JComboBox<Integer> symKeySizeCombo;
+    public final JComboBox<String> symModeCombo;
 
     public final JTextArea publicKeyArea;
     public final JTextArea privateKeyArea;
     public final JTextArea symKeyArea;
+    private final FileController fileController;
 
     public JButton genKeyPairButton;
     public JButton genSymKeyButton;
@@ -33,31 +39,29 @@ public class AsymmetricPanel extends JPanel {
     public JButton exportKeyPairButton;
     public JButton removeAllButton;
 
-    private final FileController fileController;
-
     public AsymmetricPanel(FileController fileController) {
         this.fileController = fileController;
 
         setLayout(new BorderLayout(8, 12));
         setOpaque(false);
 
-        rsaKeySizeCombo = FilePanelUI.createIntegerDropdown(new Integer[]{1024, 2048, 3072, 4096});
-        rsaKeySizeCombo.setSelectedItem(2048);
-        rsaModeCombo = FilePanelUI.createDropdown(new String[]{"ECB"});
-        rsaPaddingCombo = FilePanelUI.createDropdown(new String[]{
+        asymKeySizeCombo = FilePanelUI.createIntegerDropdown(new Integer[]{1024, 2048, 3072, 4096});
+        asymKeySizeCombo.setSelectedItem(2048);
+        asymModeCombo = FilePanelUI.createDropdown(new String[]{"ECB"});
+        asymPaddingCombo = FilePanelUI.createDropdown(new String[]{
                 "PKCS1Padding",
                 "OAEPWithSHA-1AndMGF1Padding",
                 "OAEPWithSHA-256AndMGF1Padding"
         });
 
         // Asym
-        asymSymAlgoCombo = FilePanelUI.createDropdown(new String[]{"AES", "DES"});
-        asymPaddingCombo = FilePanelUI.createDropdown(new String[]{"PKCS5Padding", "NoPadding"});
+        symAlgoCombo = FilePanelUI.createDropdown(new String[]{"AES", "DES"});
+        symPaddingCombo = FilePanelUI.createDropdown(new String[]{"PKCS5Padding", "NoPadding"});
 
         // Hybrid
-        hybridSymKeySizeCombo = FilePanelUI.createIntegerDropdown(new Integer[]{128, 192, 256});
-        hybridSymKeySizeCombo.setSelectedItem(256);
-        hybridSymModeCombo = FilePanelUI.createDropdown(new String[]{"ECB", "CBC", "CTR", "CFB", "OFB", "GCM"});
+        symKeySizeCombo = FilePanelUI.createIntegerDropdown(new Integer[]{128, 192, 256});
+        symKeySizeCombo.setSelectedItem(256);
+        symModeCombo = FilePanelUI.createDropdown(new String[]{"ECB", "CBC", "CTR", "CFB", "OFB"});
 
         publicKeyArea = FilePanelUI.createKeyTextArea();
         privateKeyArea = FilePanelUI.createKeyTextArea();
@@ -74,18 +78,18 @@ public class AsymmetricPanel extends JPanel {
         if (algo == null) return;
 
         AFileAsymCipher asymCipher = fileController.getAsymCipher(algo);
-        rsaKeySizeCombo.removeAllItems();
-        rsaPaddingCombo.removeAllItems();
+        asymKeySizeCombo.removeAllItems();
+        asymPaddingCombo.removeAllItems();
 
         for (Integer size : asymCipher.getKeySizes()) {
-            rsaKeySizeCombo.addItem(size);
+            asymKeySizeCombo.addItem(size);
         }
         for (String padding : asymCipher.getSupportedPaddings()) {
-            rsaPaddingCombo.addItem(padding);
+            asymPaddingCombo.addItem(padding);
         }
 
-        if (rsaKeySizeCombo.getItemCount() > 0) rsaKeySizeCombo.setSelectedIndex(rsaKeySizeCombo.getItemCount() - 1);
-        if (rsaPaddingCombo.getItemCount() > 0) rsaPaddingCombo.setSelectedIndex(0);
+        if (asymKeySizeCombo.getItemCount() > 0) asymKeySizeCombo.setSelectedIndex(asymKeySizeCombo.getItemCount() - 1);
+        if (asymPaddingCombo.getItemCount() > 0) asymPaddingCombo.setSelectedIndex(0);
     }
 
     public void bindActions(JComboBox<String> algoCombo) {
@@ -94,7 +98,7 @@ public class AsymmetricPanel extends JPanel {
             try {
                 fileController.genPairKey(
                         (String) algoCombo.getSelectedItem(),
-                        (Integer) rsaKeySizeCombo.getSelectedItem(),
+                        (Integer) asymKeySizeCombo.getSelectedItem(),
                         publicKeyArea,
                         privateKeyArea
                 );
@@ -104,8 +108,8 @@ public class AsymmetricPanel extends JPanel {
         });
         genSymKeyButton.addActionListener(e -> {
             try {
-                fileController.genKey(fileController.getSymCipher((String) asymSymAlgoCombo.getSelectedItem()),
-                        (Integer) hybridSymKeySizeCombo.getSelectedItem(), symKeyArea);
+                fileController.genKey(fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
+                        (Integer) symKeySizeCombo.getSelectedItem(), symKeyArea);
             } catch (NoSuchAlgorithmException ex) {
                 throw new RuntimeException(ex);
             }
@@ -127,13 +131,13 @@ public class AsymmetricPanel extends JPanel {
             try {
                 fileController.exportAllKeys(
                         fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
-                        fileController.getSymCipher((String) asymSymAlgoCombo.getSelectedItem())
+                        fileController.getSymCipher((String) symAlgoCombo.getSelectedItem())
                 );
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         });
-        removeAllButton.addActionListener(e->{
+        removeAllButton.addActionListener(e -> {
             publicKeyArea.setText("");
             privateKeyArea.setText("");
             symKeyArea.setText("");
@@ -141,11 +145,11 @@ public class AsymmetricPanel extends JPanel {
     }
 
     public String getSelectedHybridMode() {
-        return (String) hybridSymModeCombo.getSelectedItem();
+        return (String) symModeCombo.getSelectedItem();
     }
 
     public String getSelectedHybridPadding() {
-        return (String) asymPaddingCombo.getSelectedItem();
+        return (String) symPaddingCombo.getSelectedItem();
     }
 
     private JPanel createContentPanel() {
@@ -170,19 +174,19 @@ public class AsymmetricPanel extends JPanel {
     private JPanel createRsaConfigPanel() {
         JPanel rsaConfigPanel = new JPanel(new GridLayout(1, 3, 14, 0));
         rsaConfigPanel.setOpaque(false);
-        rsaConfigPanel.add(FilePanelUI.createLabeledFieldPanel("KÍCH THƯỚC KHOÁ)", rsaKeySizeCombo));
-        rsaConfigPanel.add(FilePanelUI.createLabeledFieldPanel("MODE OF OPERATION", rsaModeCombo));
-        rsaConfigPanel.add(FilePanelUI.createLabeledFieldPanel("ASYM PADDING", rsaPaddingCombo));
+        rsaConfigPanel.add(FilePanelUI.createLabeledFieldPanel("KÍCH THƯỚC KHOÁ)", asymKeySizeCombo));
+        rsaConfigPanel.add(FilePanelUI.createLabeledFieldPanel("MODE OF OPERATION", asymModeCombo));
+        rsaConfigPanel.add(FilePanelUI.createLabeledFieldPanel("ASYM PADDING", asymPaddingCombo));
         return rsaConfigPanel;
     }
 
     private JPanel createHybridSymConfigPanel() {
         JPanel symConfigPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         symConfigPanel.setOpaque(false);
-        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("THUẬT TOÁN ĐỐI XỨNG", asymSymAlgoCombo));
-        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("KÍCH THƯỚC KHOÁ", hybridSymKeySizeCombo));
-        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("MODE OF OPERATION", hybridSymModeCombo));
-        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("SYM PADDING", asymPaddingCombo));
+        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("THUẬT TOÁN ĐỐI XỨNG", symAlgoCombo));
+        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("KÍCH THƯỚC KHOÁ", symKeySizeCombo));
+        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("MODE OF OPERATION", symModeCombo));
+        symConfigPanel.add(FilePanelUI.createLabeledFieldPanel("SYM PADDING", symPaddingCombo));
         return symConfigPanel;
     }
 
@@ -209,18 +213,18 @@ public class AsymmetricPanel extends JPanel {
     }
 
     private void bindHybridActions() {
-        hybridSymModeCombo.addActionListener(e -> applyHybridCipherOptions());
-        hybridSymKeySizeCombo.addActionListener(e -> applyHybridCipherOptions());
+        symModeCombo.addActionListener(e -> applyHybridCipherOptions());
+        symKeySizeCombo.addActionListener(e -> applyHybridCipherOptions());
 
-        asymPaddingCombo.addActionListener(e -> applyHybridCipherOptions());
-        asymSymAlgoCombo.addActionListener(e -> {
+        symPaddingCombo.addActionListener(e -> applyHybridCipherOptions());
+        symAlgoCombo.addActionListener(e -> {
             updateHybridUI();
             applyHybridCipherOptions();
         });
     }
 
     private void applyHybridCipherOptions() {
-        String algo = (String) asymSymAlgoCombo.getSelectedItem();
+        String algo = (String) symAlgoCombo.getSelectedItem();
         if (algo == null) return;
 
         AFileSymCipher cipher = fileController.getSymCipher(algo);
@@ -232,27 +236,41 @@ public class AsymmetricPanel extends JPanel {
     }
 
     private void updateHybridUI() {
-        String algo = (String) asymSymAlgoCombo.getSelectedItem();
+        String algo = (String) symAlgoCombo.getSelectedItem();
         if (algo == null) return;
 
         AFileSymCipher cipher = fileController.getSymCipher(algo);
-        hybridSymKeySizeCombo.removeAllItems();
-        hybridSymModeCombo.removeAllItems();
-        asymPaddingCombo.removeAllItems();
+        symKeySizeCombo.removeAllItems();
+        symModeCombo.removeAllItems();
+        symPaddingCombo.removeAllItems();
 
         for (Integer size : cipher.getKeySizes()) {
-            hybridSymKeySizeCombo.addItem(size);
+            symKeySizeCombo.addItem(size);
         }
         for (String mode : cipher.getSupportedModes()) {
-            hybridSymModeCombo.addItem(mode);
+            symModeCombo.addItem(mode);
         }
         for (String padding : cipher.getSupportedPaddings()) {
-            asymPaddingCombo.addItem(padding);
+            symPaddingCombo.addItem(padding);
         }
 
-        if (hybridSymKeySizeCombo.getItemCount() > 0) hybridSymKeySizeCombo.setSelectedIndex(0);
-        if (hybridSymModeCombo.getItemCount() > 0) hybridSymModeCombo.setSelectedIndex(0);
-        if (asymPaddingCombo.getItemCount() > 0) asymPaddingCombo.setSelectedIndex(0);
+        if (symKeySizeCombo.getItemCount() > 0) symKeySizeCombo.setSelectedIndex(0);
+        if (symModeCombo.getItemCount() > 0) symModeCombo.setSelectedIndex(0);
+        if (symPaddingCombo.getItemCount() > 0) symPaddingCombo.setSelectedIndex(0);
+    }
+
+    public AsymmetricFiletConfig buildEncryptConfig(String asymAlgo,
+                                                    File selectedFile
+    ) {
+        return new AsymmetricFiletConfig(
+                fileController.getAsymCipher(asymAlgo),
+                fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
+                (String) asymModeCombo.getSelectedItem(),
+                (String) asymPaddingCombo.getSelectedItem(),
+                (String) symModeCombo.getSelectedItem(),
+                (String) symPaddingCombo.getSelectedItem(),
+                selectedFile
+        );
     }
 }
 

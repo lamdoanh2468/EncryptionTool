@@ -56,9 +56,13 @@ public class AES extends AFileSymCipher {
     @Override
     public byte[] encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(getTransformation());
-        cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
+        if (getTransformation().contains("/ECB/")) {
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+        } else {
+            IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+            cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
+        }
         byte[] cipherData = data.getBytes(StandardCharsets.UTF_8);
         return cipher.doFinal(cipherData);
     }
@@ -66,19 +70,27 @@ public class AES extends AFileSymCipher {
     @Override
     public String decrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(getTransformation());
-        cipher.init(Cipher.DECRYPT_MODE, key, initVector);
+        if (getTransformation().contains("/ECB/")) {
+            cipher.init(Cipher.DECRYPT_MODE, key);
+        } else {
+            IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+            cipher.init(Cipher.DECRYPT_MODE, key, initVector);
+        }
         byte[] decryptedData = cipher.doFinal(data);
         return new String(decryptedData, StandardCharsets.UTF_8);
     }
 
-    // encryptFile / decryptFile
+    // encryptFileSymmetric / decryptFileSymmetric
     @Override
     public boolean encryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(getTransformation());
-        cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
+        if (getTransformation().contains("/ECB/")) {
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+        } else {
+            IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+            cipher.init(Cipher.ENCRYPT_MODE, key, initVector);
+        }
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des));
@@ -103,9 +115,13 @@ public class AES extends AFileSymCipher {
     @Override
     public boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
         Cipher cipher = Cipher.getInstance(getTransformation());
-        cipher.init(Cipher.DECRYPT_MODE, key, initVector);
+        if (getTransformation().contains("/ECB/")) {
+            cipher.init(Cipher.DECRYPT_MODE, key);
+        } else {
+            IvParameterSpec initVector = new IvParameterSpec(new byte[16]);
+            cipher.init(Cipher.DECRYPT_MODE, key, initVector);
+        }
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(des));

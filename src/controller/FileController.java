@@ -1,6 +1,7 @@
 package controller;
 
 import model.file.*;
+import model.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
 
 import javax.crypto.BadPaddingException;
@@ -22,12 +23,12 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class FileController {
-    public static SecretKey currentKey;
     private final MainFrame view;
     // File cipher models
     private final AES aes = new AES();
     private final DES des = new DES();
     private final RSA rsa = new RSA();
+    public SecretKey currentKey;
     public PublicKey currentPublicKey;
     public PrivateKey currentPrivateKey;
 
@@ -131,7 +132,7 @@ public class FileController {
         }
     }
 
-    public void encryptFile(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void encryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         if (currentKey == null) {
             JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
@@ -154,7 +155,7 @@ public class FileController {
         }
     }
 
-    public void decryptFile(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException {
+    public void decryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException {
         if (currentKey == null) {
             JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
@@ -176,6 +177,66 @@ public class FileController {
             view.filePanel.statusLabel.setText("Giải mã xong, vui lòng kiểm tra file giải mã");
         }
     }
+
+    public void encryptFileAsymmetric(AsymmetricFiletConfig config) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+        if (currentPublicKey == null) {
+            JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (config.getSelectedFile() == null) {
+            JOptionPane.showMessageDialog(view, "Người dùng chưa nhập file", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn đường dẫn để lưu file mã hóa");
+        int option = fileChooser.showSaveDialog(null);
+        if (option == JFileChooser.APPROVE_OPTION) {
+
+            File savedFile = fileChooser.getSelectedFile();
+
+            // Set asymmetric cipher
+            config.getAsymCipher().setAsymMode(config.getAsymMode());
+            config.getAsymCipher().setAsymPadding(config.getAsymPadding());
+            config.getAsymCipher().setSymCipher(config.getSymCipher());
+
+            // Set symmetric cipher
+            config.getAsymCipher().setSymKey(currentKey);
+            config.getSymCipher().setMode(config.getSymMode());
+            config.getSymCipher().setPadding(config.getSymPadding());
+
+            config.getAsymCipher().encryptFile(config.getSelectedFile().getAbsolutePath(), savedFile.getAbsolutePath());
+            JOptionPane.showMessageDialog(view, "Mã hóa file thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            view.filePanel.statusLabel.setText("Mã hóa xong, bạn có thể tiếp tục với file khác");
+        }
+    }
+
+    public void decryptFileAsymmetric(AsymmetricFiletConfig config) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+        if (currentPrivateKey == null) {
+            JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        File selectedFile = config.getSelectedFile();
+        if (selectedFile == null) {
+            JOptionPane.showMessageDialog(view, "Người dùng chưa nhập file", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn đường dẫn để lưu file giải mã");
+        int option = fileChooser.showSaveDialog(null);
+        if (option == JFileChooser.APPROVE_OPTION) {
+
+            File savedFile = fileChooser.getSelectedFile();
+
+            // Set asymmetric cipher
+            config.getAsymCipher().setAsymMode(config.getAsymMode());
+            config.getAsymCipher().setAsymPadding(config.getAsymPadding());
+
+            config.getAsymCipher().decryptFile(selectedFile.getAbsolutePath(), savedFile.getAbsolutePath());
+            JOptionPane.showMessageDialog(view, "Giải mã file thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            view.filePanel.statusLabel.setText("Giải mã xong, bạn có thể tiếp tục với file khác");
+        }
+    }
+
 
     public void handleCipherException(Exception ex, String action, String operation) {
         Throwable root = ex;
@@ -248,8 +309,15 @@ public class FileController {
 
         // Generate key pair
         asymCipher.genKeyPair(algorithm, keySize, "keypair");
+
+        // Set current key
+        currentPublicKey = asymCipher.getPublicKey();
+        currentPrivateKey = asymCipher.getPrivateKey();
+
+        // Get key string
         String publicKey = asymCipher.getPublicKeyString();
         String privateKey = asymCipher.getPrivateKeyString();
+
         // Set key text to text area
         pubKeyArea.setText(publicKey);
         privKeyArea.setText(privateKey);
@@ -345,7 +413,7 @@ public class FileController {
             File selectedDir = fileChooser.getSelectedFile();
             String dirPath = selectedDir.getAbsolutePath();
 
-            if(asymCipher.getPrivateKey() == null || asymCipher.getPublicKeyString() == null){
+            if (asymCipher.getPrivateKey() == null || asymCipher.getPublicKeyString() == null) {
                 JOptionPane.showMessageDialog(view, "Chưa tạo cặp khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }

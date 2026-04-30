@@ -2,7 +2,6 @@ package model.file;
 
 import javax.crypto.SecretKey;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.*;
@@ -10,10 +9,6 @@ import java.util.Base64;
 import java.util.List;
 
 public abstract class AFileAsymCipher implements IFileCipher {
-
-
-    protected static final String DEFAULT_PUBLIC_KEY_PATH = "public.key";
-    protected static final String DEFAULT_PRIVATE_KEY_PATH = "private.key";
 
     // Asymmetric Key
     protected static PublicKey publicKey;
@@ -25,15 +20,16 @@ public abstract class AFileAsymCipher implements IFileCipher {
     protected List<Integer> keySizes;
 
     // Symmetric Key
-    protected  SecretKey symKey;
+    protected SecretKey symKey;
     protected AFileSymCipher symCipher;
 
-    public AFileAsymCipher(String asymAlgorithm, String defaultMode, String defaultPadding,AFileSymCipher symCipher) {
+    public AFileAsymCipher(String asymAlgorithm, String defaultMode, String defaultPadding, AFileSymCipher symCipher) {
         this.asymAlgorithm = asymAlgorithm;
         this.asymMode = defaultMode;
         this.asymPadding = defaultPadding;
         this.symCipher = symCipher;
     }
+
     public AFileAsymCipher(String asymAlgorithm, String defaultMode, String defaultPadding) {
         this(asymAlgorithm, defaultMode, defaultPadding, null);
     }
@@ -60,7 +56,7 @@ public abstract class AFileAsymCipher implements IFileCipher {
         return asymAlgorithm + "/" + asymMode + "/" + asymPadding;
     }
 
-    public void genKeyPair(String algorithm,int keySize, String dest) throws NoSuchAlgorithmException, IOException {
+    public void genKeyPair(String algorithm, int keySize, String dest) throws NoSuchAlgorithmException, IOException {
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(algorithm);
         keyGenerator.initialize(keySize);
 
@@ -74,14 +70,15 @@ public abstract class AFileAsymCipher implements IFileCipher {
         return privateKey;
     }
 
-    public  PublicKey getPublicKey() {
+    public PublicKey getPublicKey() {
         return publicKey;
     }
 
-    public String getPublicKeyString(){
+    public String getPublicKeyString() {
         return Base64.getEncoder().encodeToString(publicKey.getEncoded());
     }
-    public String getPrivateKeyString(){
+
+    public String getPrivateKeyString() {
         return Base64.getEncoder().encodeToString(privateKey.getEncoded());
     }
 
@@ -105,11 +102,28 @@ public abstract class AFileAsymCipher implements IFileCipher {
         writer.close();
         System.out.println("Export private key successful");
     }
+
     public AFileSymCipher getSymCipher() {
         return symCipher;
     }
 
     public void setSymCipher(AFileSymCipher symCipher) {
         this.symCipher = symCipher;
+    }
+
+    public void setAsymAlgorithm(String asymAlgorithm) {
+        this.asymAlgorithm = asymAlgorithm;
+    }
+
+    public void setAsymMode(String asymMode) {
+        this.asymMode = asymMode;
+    }
+
+    public void setAsymPadding(String asymPadding) {
+        this.asymPadding = asymPadding;
+    }
+
+    public void setSymKey(SecretKey symKey) {
+        this.symKey = symKey;
     }
 }

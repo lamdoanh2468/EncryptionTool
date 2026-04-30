@@ -1,6 +1,7 @@
 package view.file;
 
 import controller.FileController;
+import model.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
 
 import javax.swing.*;
@@ -63,22 +64,40 @@ public class FilePanel extends JPanel {
         encryptFileBtn = createActionButton("Mã hóa File", MainFrame.BLUE_BTN);
         encryptFileBtn.addActionListener(e -> {
 
-            String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
-            String mode = (String) fileSelectorPanel.modeCombo.getSelectedItem();
-            String padding = (String) fileSelectorPanel.paddingCombo.getSelectedItem();
             try {
-                fileController.encryptFile(fileController.getSymCipher(algo),mode,padding, selectedFile);
+                if (fileSelectorPanel.isAsymmetricSelected()) {
+                    AsymmetricFiletConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
+                    fileController.encryptFileAsymmetric(config);
+                } else {
+                    String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
+
+                    fileController.encryptFileSymmetric(
+                            fileController.getSymCipher(algo),
+                            fileSelectorPanel.getSelectedMode(),
+                            fileSelectorPanel.getSelectedPadding(),
+                            selectedFile
+                    );
+                }
             } catch (Exception ex) {
                 fileController.handleCipherException(ex, "mã hóa", "encrypt");
             }
         });
         decryptFileBtn = createActionButton("Giải mã File", new Color(60, 180, 120));
         decryptFileBtn.addActionListener(e -> {
-            String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
-            String mode = (String) fileSelectorPanel.modeCombo.getSelectedItem();
-            String padding = (String) fileSelectorPanel.paddingCombo.getSelectedItem();
             try {
-                fileController.decryptFile(fileController.getSymCipher(algo), mode, padding, selectedFile);
+                if (fileSelectorPanel.isAsymmetricSelected()) {
+                    AsymmetricFiletConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
+                    fileController.decryptFileAsymmetric(config);
+                } else {
+                    String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
+
+                    fileController.decryptFileSymmetric(
+                            fileController.getSymCipher(algo),
+                            fileSelectorPanel.getSelectedMode(),
+                            fileSelectorPanel.getSelectedPadding(),
+                            selectedFile
+                    );
+                }
             } catch (Exception ex) {
                 fileController.handleCipherException(ex, "giải mã", "decrypt");
             }

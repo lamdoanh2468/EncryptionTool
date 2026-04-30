@@ -1,11 +1,13 @@
 package view.file;
 
 import controller.FileController;
+import model.file.config.AsymmetricFiletConfig;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.symmetric.SymmetricPanel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 public class FileSelectorPanel extends JPanel {
     private static final String[] SYMMETRIC_ALGOS = {"AES", "DES"};
@@ -23,13 +25,11 @@ public class FileSelectorPanel extends JPanel {
     public final JButton copyButton;
     public final JButton importButton;
     public final JButton exportButton;
-
+    public final FileController fileController;
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
     private final SymmetricPanel symmetricPanel;
     private final AsymmetricPanel asymmetricPanel;
-
-    public final FileController fileController;
 
     public FileSelectorPanel(FileController fileController) {
         this.fileController = fileController;
@@ -125,7 +125,12 @@ public class FileSelectorPanel extends JPanel {
         }
     }
 
-    private boolean isAsymmetricSelected() {
+    public boolean isAsymmetricSelected() {
         return "Bất đối xứng".equals(typeCombo.getSelectedItem());
+    }
+
+    public AsymmetricFiletConfig buildAsymmetricEncryptConfig(File selectedFile) {
+        String asymAlgo = (String) algoCombo.getSelectedItem();
+        return asymmetricPanel.buildEncryptConfig(asymAlgo, selectedFile);
     }
 }
