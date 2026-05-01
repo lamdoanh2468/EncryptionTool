@@ -243,32 +243,55 @@ public class FileController {
         while (root.getCause() != null) {
             root = root.getCause();
         }
-        String title = "Lỗi " + action + " file";
 
-        String message = "<html>" + buildErrorMessage(root, ex, action) + "</html>";
+        String title = "Lỗi " + action + " file";
+        String message = buildErrorMessage(root, ex, action);
 
         JOptionPane.showMessageDialog(view, message, title, JOptionPane.ERROR_MESSAGE);
-
     }
 
     private String buildErrorMessage(Throwable root, Exception ex, String action) {
 
         if (root instanceof InvalidKeyException) {
-            return "<b>Khóa không hợp lệ hoặc không phù hợp với thuật toán</b><br>" + "• Khóa chưa được tạo<br>" + "• Hoặc khóa import sai kích thước (AES: 16/24/32 bytes, DES: 8 bytes)<br>" + "<br>Vui lòng tạo khóa mới hoặc import lại khóa đúng.";
+            return "Khóa không hợp lệ hoặc không phù hợp với thuật toán\n"
+                    + "• Khóa chưa được tạo\n"
+                    + "• Hoặc khóa import sai kích thước (AES: 16/24/32 bytes, DES: 8 bytes)\n\n"
+                    + "Vui lòng tạo khóa mới hoặc import lại khóa đúng.";
+
         } else if (root instanceof BadPaddingException) {
-            return "<b>Giải mã thất bại (Bad Padding)</b><br>" + "Nguyên nhân thường gặp:<br>" + "• Khóa sai<br>" + "• File không phải là file đã được mã hóa bởi chương trình này<br>" + "• File bị hỏng hoặc đã bị chỉnh sửa sau khi mã hóa";
+            return "Giải mã thất bại (Bad Padding)\n"
+                    + "Nguyên nhân thường gặp:\n"
+                    + "• Khóa sai\n"
+                    + "• File không phải là file đã được mã hóa bởi chương trình này\n"
+                    + "• File bị hỏng hoặc đã bị chỉnh sửa sau khi mã hóa";
+
         } else if (root instanceof IllegalBlockSizeException) {
-            return "<b>Kích thước khối dữ liệu không hợp lệ</b><br>" + "File có thể bị hỏng, không đầy đủ, hoặc không phải định dạng mã hóa hợp lệ.";
+            return "Kích thước khối dữ liệu không hợp lệ\n"
+                    + "File có thể bị hỏng, không đầy đủ, hoặc không phải định dạng mã hóa hợp lệ.";
+
         } else if (root instanceof InvalidAlgorithmParameterException) {
-            return "<b>Tham số thuật toán không hợp lệ</b><br>" + "Thường xảy ra khi IV (Initialization Vector) bị sai hoặc mode mã hóa không đúng.";
+            return "Tham số thuật toán không hợp lệ\n"
+                    + "Thường xảy ra khi IV (Initialization Vector) bị sai hoặc mode mã hóa không đúng.";
+
         } else if (root instanceof NoSuchAlgorithmException) {
-            return "<b>Thuật toán không được hỗ trợ</b><br>" + "Máy tính của bạn không hỗ trợ thuật toán " + (action.contains("Mã hóa") ? "AES/DES" : "này") + ".";
+            return "Thuật toán không được hỗ trợ\n"
+                    + "Máy tính của bạn không hỗ trợ thuật toán "
+                    + (action.contains("Mã hóa") ? "AES/DES" : "này") + ".";
+
         } else if (root instanceof NoSuchPaddingException) {
-            return "<b>Chế độ Padding không được hỗ trợ</b><br>" + "Vấn đề liên quan đến cấu hình mã hóa (thường hiếm gặp).";
+            return "Chế độ Padding không được hỗ trợ\n"
+                    + "Vấn đề liên quan đến cấu hình mã hóa (thường hiếm gặp).";
+
         } else if (ex instanceof IOException) {
-            return "<b>Lỗi đọc/ghi file</b><br>" + "• File nguồn không tồn tại<br>" + "• Không có quyền đọc/ghi<br>" + "• Đường dẫn lưu file bị trùng hoặc bị khóa";
+            return "Lỗi đọc/ghi file\n"
+                    + "• File nguồn không tồn tại\n"
+                    + "• Không có quyền đọc/ghi\n"
+                    + "• Đường dẫn lưu file bị trùng hoặc bị khóa";
+
         } else {
-            return " <b>Đã xảy ra lỗi không xác định khi " + action.toLowerCase() + " file</b><br>" + "<small>Chi tiết kỹ thuật: " + ex.getClass().getSimpleName() + " – " + ex.getMessage() + "</small>";
+            return "Đã xảy ra lỗi không xác định khi " + action.toLowerCase() + " file\n\n"
+                    + "Chi tiết kỹ thuật: "
+                    + ex.getClass().getSimpleName() + " – " + ex.getMessage();
         }
     }
 
