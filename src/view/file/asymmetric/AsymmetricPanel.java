@@ -1,6 +1,8 @@
 package view.file.asymmetric;
 
-import controller.FileController;
+import controller.file.AsymmetricFileController;
+import controller.file.FileController;
+import controller.file.SymmetricFileController;
 import model.file.AFileAsymCipher;
 import model.file.AFileSymCipher;
 import model.file.config.AsymmetricFiletConfig;
@@ -30,19 +32,21 @@ public class AsymmetricPanel extends JPanel {
     public final JTextArea publicKeyArea;
     public final JTextArea privateKeyArea;
     public final JTextArea symKeyArea;
+    private final AsymmetricFileController asymmetricFileController;
+    private final SymmetricFileController symmetricFileController;
     private final FileController fileController;
-
     public JButton genKeyPairButton;
     public JButton genSymKeyButton;
     public JButton importPublicKeyButton;
     public JButton importPrivateKeyButton;
-    public JButton importSymKeyButton;
     public JButton exportKeyPairButton;
     public JButton removeAllButton;
 
-    public AsymmetricPanel(FileController fileController) {
+    public AsymmetricPanel(FileController fileController, AsymmetricFileController asymmetricFileController
+            , SymmetricFileController symmetricFileController) {
         this.fileController = fileController;
-
+        this.asymmetricFileController = asymmetricFileController;
+        this.symmetricFileController = symmetricFileController;
         setLayout(new BorderLayout(8, 12));
         setOpaque(false);
 
@@ -93,11 +97,11 @@ public class AsymmetricPanel extends JPanel {
         if (asymPaddingCombo.getItemCount() > 0) asymPaddingCombo.setSelectedIndex(0);
     }
 
-    public void bindActions(JComboBox<String> algoCombo) {
+    public void bindButtonActions(JComboBox<String> algoCombo) {
 
         genKeyPairButton.addActionListener(e -> {
             try {
-                fileController.genPairKey(
+                asymmetricFileController.genPairKey(
                         (String) algoCombo.getSelectedItem(),
                         (Integer) asymKeySizeCombo.getSelectedItem(),
                         publicKeyArea,
@@ -109,7 +113,7 @@ public class AsymmetricPanel extends JPanel {
         });
         genSymKeyButton.addActionListener(e -> {
             try {
-                fileController.genKey(fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
+                symmetricFileController.genKey(fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
                         (Integer) symKeySizeCombo.getSelectedItem(), symKeyArea);
             } catch (NoSuchAlgorithmException ex) {
                 throw new RuntimeException(ex);
@@ -117,28 +121,25 @@ public class AsymmetricPanel extends JPanel {
         });
 
         importPublicKeyButton.addActionListener(e -> {
-            fileController.importPublicKey(
+            asymmetricFileController.importPublicKey(
                     fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                     publicKeyArea
             );
         });
         importPrivateKeyButton.addActionListener(e -> {
-            fileController.importPrivateKey(
+            asymmetricFileController.importPrivateKey(
                     fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                     privateKeyArea
             );
             try {
-                fileController.setAsymmetricCipherInfo(this);
+                asymmetricFileController.setAsymmetricCipherInfo(this);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         });
-        importSymKeyButton.addActionListener(e -> {
-            fileController.importKey(fileController.getSymCipher((String)symAlgoCombo.getSelectedItem()),symKeyArea);
-        });
         exportKeyPairButton.addActionListener(e -> {
             try {
-                fileController.exportAllKeys(
+                asymmetricFileController.exportKeyPair(
                         fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                         (String) asymModeCombo.getSelectedItem(),
                         (String) asymPaddingCombo.getSelectedItem(),
@@ -149,9 +150,7 @@ public class AsymmetricPanel extends JPanel {
             }
         });
         removeAllButton.addActionListener(e -> {
-            publicKeyArea.setText("");
-            privateKeyArea.setText("");
-            symKeyArea.setText("");
+            fileController.removeKeyArea(publicKeyArea, privateKeyArea, symKeyArea);
         });
     }
 
@@ -202,16 +201,15 @@ public class AsymmetricPanel extends JPanel {
     }
 
     private JPanel createButtonPanel() {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel row = new JPanel(new GridLayout(1, 7, 8, 0));
         row.setOpaque(false);
-        row.setBorder(new EmptyBorder(18, 0, 0, 0));
+        row.setBorder(new EmptyBorder(15, 10, 15, 10));
 
         genKeyPairButton = FilePanelUI.createOutlineButton("Tạo cặp khoá", MainFrame.ACCENT);
         genSymKeyButton = FilePanelUI.createOutlineButton("Tạo khoá đối xứng", MainFrame.ACCENT);
-        exportKeyPairButton = FilePanelUI.createOutlineButton("Xuất các khoá ", new Color(16, 185, 129));
+        exportKeyPairButton = FilePanelUI.createOutlineButton("Xuất cặp khoá ", new Color(16, 185, 129));
         importPublicKeyButton = FilePanelUI.createOutlineButton("Nhập public key", new Color(75, 85, 99));
         importPrivateKeyButton = FilePanelUI.createOutlineButton("Nhập private key", new Color(75, 85, 99));
-        importSymKeyButton =FilePanelUI.createOutlineButton("Nhập sym key", new Color(75, 85, 99));
         removeAllButton = FilePanelUI.createOutlineButton("Xóa tất cả", new Color(255, 65, 54));
 
         row.add(genKeyPairButton);
@@ -219,19 +217,33 @@ public class AsymmetricPanel extends JPanel {
         row.add(exportKeyPairButton);
         row.add(importPublicKeyButton);
         row.add(importPrivateKeyButton);
-        row.add(importSymKeyButton);
         row.add(removeAllButton);
 
         return row;
     }
 
     private void bindHybridActions() {
-        symModeCombo.addActionListener(e -> applyHybridCipherOptions());
-        symKeySizeCombo.addActionListener(e -> applyHybridCipherOptions());
 
-        symPaddingCombo.addActionListener(e -> applyHybridCipherOptions());
+        // Asymmetric key size
+        asymKeySizeCombo.addActionListener(e -> clearAsymKeys());
+
+        // Symmetric key size, mode, padding and algorithm
+        symModeCombo.addActionListener(e -> {
+            applyHybridCipherOptions();
+            clearSymKey();
+        });
+        symKeySizeCombo.addActionListener(e -> {
+            applyHybridCipherOptions();
+            clearSymKey();
+        });
+        symPaddingCombo.addActionListener(e ->
+        {
+            applyHybridCipherOptions();
+            clearSymKey();
+        });
         symAlgoCombo.addActionListener(e -> {
             updateHybridUI();
+            clearSymKey();
             applyHybridCipherOptions();
         });
     }
@@ -284,6 +296,30 @@ public class AsymmetricPanel extends JPanel {
                 (String) symPaddingCombo.getSelectedItem(),
                 selectedFile
         );
+    }
+
+    public void clearAsymKeys() {
+        boolean hasKeyPairs = !publicKeyArea.getText().isEmpty() || !privateKeyArea.getText().isEmpty();
+        if (hasKeyPairs) {
+            JOptionPane.showMessageDialog(this, " Đã xóa tất cả các khoá và thông tin thuật toán bất đối xứng", "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+            publicKeyArea.setText("");
+            privateKeyArea.setText("");
+            fileController.currentPublicKey = null;
+            fileController.currentPrivateKey = null;
+            fileController.updateStatus("Bạn vừa mới thay đổi tham số thuật toán , vui lòng tạo lại khoá bất đối xứng");
+        }
+    }
+
+    public void clearSymKey() {
+        boolean hasSymKey = !symKeyArea.getText().isEmpty();
+        if (hasSymKey) {
+            JOptionPane.showMessageDialog(this, " Đã xóa tất cả các khoá và thông tin thuật toán đối xứng", "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+            symKeyArea.setText("");
+            fileController.currentKey = null;
+            fileController.updateStatus("Bạn vừa mới thay đổi tham số thuật toán , vui lòng tạo lại khoá đối xứng");
+        }
     }
 }
 

@@ -1,6 +1,8 @@
 package view.file;
 
-import controller.FileController;
+import controller.file.AsymmetricFileController;
+import controller.file.FileController;
+import controller.file.SymmetricFileController;
 import model.file.config.AsymmetricFiletConfig;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.symmetric.SymmetricPanel;
@@ -25,13 +27,17 @@ public class FileSelectorPanel extends JPanel {
     public final JButton copyButton;
     public final JButton importButton;
     public final JButton exportButton;
+
     public final FileController fileController;
+
+
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
-    private final SymmetricPanel symmetricPanel;
-    private final AsymmetricPanel asymmetricPanel;
+    public final SymmetricPanel symmetricPanel;
+    public final AsymmetricPanel asymmetricPanel;
 
-    public FileSelectorPanel(FileController fileController) {
+    public FileSelectorPanel(FileController fileController,SymmetricFileController symmetricFileController, AsymmetricFileController asymmetricFileController) {
+
         this.fileController = fileController;
 
         setLayout(new BorderLayout(0, 10));
@@ -40,8 +46,8 @@ public class FileSelectorPanel extends JPanel {
         typeCombo = FilePanelUI.createDropdown(new String[]{"Đối xứng", "Bất đối xứng"});
         algoCombo = FilePanelUI.createDropdown(SYMMETRIC_ALGOS);
 
-        symmetricPanel = new SymmetricPanel(fileController);
-        asymmetricPanel = new AsymmetricPanel(fileController);
+        symmetricPanel = new SymmetricPanel(fileController, symmetricFileController);
+        asymmetricPanel = new AsymmetricPanel(fileController, asymmetricFileController, symmetricFileController);
 
         modeCombo = symmetricPanel.modeCombo;
         paddingCombo = symmetricPanel.paddingCombo;
@@ -93,7 +99,7 @@ public class FileSelectorPanel extends JPanel {
         typeCombo.addActionListener(e -> handleEncryptionTypeChange());
         algoCombo.addActionListener(e -> handleAlgorithmChange());
         symmetricPanel.bindActions(algoCombo);
-        asymmetricPanel.bindActions(algoCombo);
+        asymmetricPanel.bindButtonActions(algoCombo);
     }
 
     private void handleEncryptionTypeChange() {

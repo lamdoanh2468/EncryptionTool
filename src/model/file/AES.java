@@ -21,8 +21,8 @@ public class AES extends AFileSymCipher {
         // TODO Auto-generated method stub
         AES aes = new AES();
         aes.genKey(aes.keySizes.get(2));
-        aes.encryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12.png", "C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png");
-        aes.decryptFile("C:\\Users\\lamdo\\Downloads\\artplayer_06_12_enc.png", "C:\\Users\\lamdo\\Downloads\\artplayer_06_12_dec.png");
+        aes.encryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx");
+        aes.decryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_dec.pptx");
 
     }
 
@@ -33,7 +33,7 @@ public class AES extends AFileSymCipher {
 
     @Override
     public List<String> getSupportedModes() {
-        return Arrays.asList("ECB", "CBC", "CTR", "CFB", "OFB", "GCM");
+        return Arrays.asList("ECB", "CBC","PCBC","CFB","OFB","CTR");
     }
 
     @Override
@@ -132,8 +132,8 @@ public class AES extends AFileSymCipher {
         while ((count = bis.read(readBuffer)) != -1) {
             cos.write(readBuffer, 0, count);
         }
-        bos.flush();
-        bos.close();
+        cos.flush();
+        cos.close();
         bis.close();
         return true;
     }

@@ -1,7 +1,5 @@
-//import controller.FileController;
+//import controller.file.FileController;
 
-import controller.FileController;
-import controller.TextController;
 import view.MainFrame;
 
 import javax.swing.*;

@@ -24,8 +24,7 @@ public class DES extends AFileSymCipher {
 
     @Override
     public List<String> getSupportedModes() {
-        // Các mode phổ biến của DES (ECB không khuyến khích dùng cho file)
-        return Arrays.asList("ECB", "CBC", "CTR", "CFB", "OFB");
+        return Arrays.asList("ECB", "CBC","PCBC","CFB","OFB","CTR");
     }
 
     @Override
@@ -84,16 +83,18 @@ public class DES extends AFileSymCipher {
         Cipher cipher = Cipher.getInstance(getTransformation());
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
 
-        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
-             CipherOutputStream cos = new CipherOutputStream(
-                     new BufferedOutputStream(new FileOutputStream(des)), cipher)) {
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(src));
+        CipherOutputStream cos = new CipherOutputStream(new BufferedOutputStream(new FileOutputStream(des)), cipher);
 
-            byte[] buffer = new byte[4096];
-            int count;
-            while ((count = bis.read(buffer)) != -1) {
-                cos.write(buffer, 0, count);
-            }
+        byte[] buffer = new byte[4096];
+        int count;
+        while ((count = bis.read(buffer)) != -1) {
+            cos.write(buffer, 0, count);
         }
+        cos.flush();
+        cos.close();
+        bis.close();
+
         return true;
     }
 }

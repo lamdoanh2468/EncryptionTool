@@ -1,4 +1,4 @@
-package controller;
+package controller.text;
 
 import model.text.*;
 import view.MainFrame;

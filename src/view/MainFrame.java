@@ -1,7 +1,7 @@
 package view;
 
-import controller.FileController;
-import controller.TextController;
+import controller.file.FileController;
+import controller.text.TextController;
 import view.file.FilePanel;
 import view.text.TextPanel;
 

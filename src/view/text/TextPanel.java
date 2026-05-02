@@ -1,6 +1,6 @@
 package view.text;
 
-import controller.TextController;
+import controller.text.TextController;
 import view.MainFrame;
 
 import javax.swing.*;

@@ -1,6 +1,7 @@
 package view.file.symmetric;
 
-import controller.FileController;
+import controller.file.FileController;
+import controller.file.SymmetricFileController;
 import model.file.AFileSymCipher;
 import view.MainFrame;
 import view.file.FilePanelUI;
@@ -21,12 +22,15 @@ public class SymmetricPanel extends JPanel {
     public final JButton copyButton;
     public final JButton importButton;
     public final JButton exportButton;
+    public final JButton removeKeyButton;
 
+    private final SymmetricFileController symmetricFileController;
     private final FileController fileController;
     private final JLabel keyLabel;
 
-    public SymmetricPanel(FileController fileController) {
+    public SymmetricPanel(FileController fileController, SymmetricFileController symmetricFileController) {
         this.fileController = fileController;
+        this.symmetricFileController = symmetricFileController;
 
         setLayout(new BorderLayout(8, 12));
         setOpaque(false);
@@ -44,6 +48,7 @@ public class SymmetricPanel extends JPanel {
         copyButton = FilePanelUI.createOutlineButton("Sao chép khóa", new Color(99, 102, 241));
         importButton = FilePanelUI.createOutlineButton("Nhập khóa từ file", new Color(75, 85, 99));
         exportButton = FilePanelUI.createOutlineButton("Xuất khóa ra file", new Color(16, 185, 129));
+        removeKeyButton = FilePanelUI.createOutlineButton("Xoá khoá", new Color(255, 65, 54));
 
         add(createContentPanel(), BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
@@ -95,7 +100,7 @@ public class SymmetricPanel extends JPanel {
             AFileSymCipher cipher = fileController.getSymCipher(algo);
             Integer keySize = (Integer) keySizeCombo.getSelectedItem();
             try {
-                fileController.genKey(cipher, keySize, keyArea);
+                symmetricFileController.genKey(cipher, keySize, keyArea);
             } catch (NoSuchAlgorithmException ex) {
                 throw new RuntimeException(ex);
             }
@@ -106,16 +111,17 @@ public class SymmetricPanel extends JPanel {
         importButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
             AFileSymCipher cipher = fileController.getSymCipher(algo);
-            fileController.importKey(cipher, keyArea);
+            symmetricFileController.importKey(cipher, keyArea);
         });
 
         exportButton.addActionListener(e -> {
             try {
-                fileController.exportKey();
+                symmetricFileController.exportKey();
             } catch (NoSuchAlgorithmException ex) {
                 throw new RuntimeException(ex);
             }
         });
+        removeKeyButton.addActionListener(e -> fileController.removeKeyArea(keyArea));
     }
 
     public String getSelectedMode() {
@@ -149,6 +155,7 @@ public class SymmetricPanel extends JPanel {
         row.add(copyButton);
         row.add(importButton);
         row.add(exportButton);
+        row.add(removeKeyButton);
         return row;
     }
 
