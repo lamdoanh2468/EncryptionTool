@@ -18,11 +18,11 @@ public class FilePanel extends JPanel {
     public final JButton encryptFileBtn;
     public final JButton decryptFileBtn;
     public final JLabel statusLabel;
+    public File selectedFile;
     FileController fileController;
     SymmetricFileController symmetricFileController;
     AsymmetricFileController asymmetricFileController;
-    FileSelectorPanel fileSelectorPanel;
-    public File selectedFile;
+    public FileSelectorPanel fileSelectorPanel;
 
     public FilePanel(FileController fileController) {
         this.fileController = fileController;
@@ -102,15 +102,9 @@ public class FilePanel extends JPanel {
         btnPanel.add(decryptFileBtn);
 
         chooseFileBtn = createActionButton("Chọn file...", MainFrame.ACCENT);
-        chooseFileBtn.addActionListener(
-                e -> {
-                    selectedFile = fileController.chooseFile(filePathLabel);
-                    if (selectedFile != null) {
-                            encryptFileBtn.setVisible(true);
-                            decryptFileBtn.setVisible(true);
-                    }
-                }
-        );
+        chooseFileBtn.addActionListener(e -> {
+            selectedFile = fileController.chooseFile(filePathLabel);
+        });
 
         JPanel fileRow = new JPanel(new BorderLayout(10, 0));
         fileRow.setOpaque(false);

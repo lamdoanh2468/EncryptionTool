@@ -37,8 +37,14 @@ public class FileController {
         this.symmetricController = new SymmetricFileController(this);
         this.asymmetricController = new AsymmetricFileController(this);
     }
-    public SymmetricFileController getSymmetricController() { return symmetricController; }
-    public AsymmetricFileController getAsymmetricController() { return asymmetricController; }
+
+    public SymmetricFileController getSymmetricController() {
+        return symmetricController;
+    }
+
+    public AsymmetricFileController getAsymmetricController() {
+        return asymmetricController;
+    }
 
     public File chooseFile(JLabel filePathLabel) {
         JFileChooser fc = new JFileChooser();
@@ -50,6 +56,8 @@ public class FileController {
             filePathLabel.setForeground(MainFrame.TXT_MAIN);
             JOptionPane.showMessageDialog(null, "Chọn file thành công");
             updateStatus("Đã chọn file, hãy chọn loại mã hóa và thông tin thuật toán");
+            updateEncryptDecryptButtons();
+            setCombosEnabled(true);
             return selectedFile;
         }
         return null;
@@ -122,6 +130,7 @@ public class FileController {
     public void updateStatus(String message) {
         if (view.filePanel != null && view.filePanel.statusLabel != null) {
             view.filePanel.statusLabel.setText(message);
+            view.filePanel.statusLabel.setForeground(new Color(0, 128, 0)); // màu xanh
         }
     }
 
@@ -144,6 +153,8 @@ public class FileController {
             // Hide encrypt/decrypt buttons
             view.filePanel.encryptFileBtn.setVisible(false);
             view.filePanel.decryptFileBtn.setVisible(false);
+
+            setCombosEnabled(false);
         }
     }
 
@@ -152,6 +163,7 @@ public class FileController {
             keyArea.setText("");
         }
     }
+
     public AFileSymCipher getSymCipher(String algoName) {
         if (algoName == null) return null;
         return switch (algoName) {
@@ -169,6 +181,7 @@ public class FileController {
             default -> null;
         };
     }
+
     public void setSymmetricPanel(SymmetricPanel panel) {
         this.symmetricController.setSymmetricPanel(panel);
     }
@@ -176,6 +189,27 @@ public class FileController {
     public void setAsymmetricPanel(AsymmetricPanel panel) {
         this.asymmetricController.setAsymmetricPanel(panel);
     }
+
+    public void updateEncryptDecryptButtons() {
+        if (view.filePanel == null) return;
+
+        boolean hasFile = view.filePanel.selectedFile != null;
+        boolean hasKey = currentKey != null || currentPublicKey != null;
+
+        // Set visibility of buttons
+        view.filePanel.encryptFileBtn.setVisible(hasFile);
+        view.filePanel.decryptFileBtn.setVisible(hasFile);
+
+        // Enable/Disable buttons
+        view.filePanel.encryptFileBtn.setEnabled(hasFile && hasKey);
+        view.filePanel.decryptFileBtn.setEnabled(hasFile && hasKey);
+    }
+    public void setCombosEnabled(boolean enabled) {
+        if (view.filePanel != null && view.filePanel.fileSelectorPanel != null) {
+            view.filePanel.fileSelectorPanel.setCombosEnabled(enabled);
+        }
+    }
+
 }
 
 

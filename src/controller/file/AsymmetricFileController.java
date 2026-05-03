@@ -1,7 +1,6 @@
 package controller.file;
 
 import model.file.AFileAsymCipher;
-import model.file.AFileSymCipher;
 import model.file.config.AsymmetricFiletConfig;
 import view.file.asymmetric.AsymmetricPanel;
 
@@ -50,6 +49,7 @@ public class AsymmetricFileController {
         pubKeyArea.setText(publicKey);
         privKeyArea.setText(privateKey);
         JOptionPane.showMessageDialog(null, "Tạo cặp khoá thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        fileController.updateEncryptDecryptButtons();
         fileController.updateStatus("Tạo cặp khoá thành công, vui lòng tiếp tục tạo khoá đối xứng");
     }
 
@@ -77,12 +77,12 @@ public class AsymmetricFileController {
         }
     }
 
-    public void importPrivateKey(AFileAsymCipher cipher, JTextArea keyArea) {
+    public boolean importPrivateKey(AFileAsymCipher cipher, JTextArea keyArea) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn file chứa khóa bí mật");
         int userSelection = fileChooser.showOpenDialog(null);
 
-        if (userSelection != JFileChooser.APPROVE_OPTION) return;
+        if (userSelection != JFileChooser.APPROVE_OPTION) return false;
 
         File selectedFile = fileChooser.getSelectedFile();
         try {
@@ -95,15 +95,19 @@ public class AsymmetricFileController {
             fileController.currentPrivateKey = keyFactory.generatePrivate(keySpec);
             keyArea.setText(encodedKey);
             JOptionPane.showMessageDialog(null, "Nhập private key thành công");
+            fileController.updateEncryptDecryptButtons();
             fileController.updateStatus("Đã nhập private key, vui lòng chọn giải mã");
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(null, "File không đúng định dạng", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return false;
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Lỗi khi nhập private key", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
+        return true;
     }
 
-    public void exportKeyPair(AFileAsymCipher asymCipher, String mode, String padding, AFileSymCipher symCipher) throws IOException {
+    public void exportKeyPair(AFileAsymCipher asymCipher, String mode, String padding) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu cặp khoá công khai và riêng tư");
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -123,13 +127,13 @@ public class AsymmetricFileController {
 
             asymCipher.setAsymMode(mode);
             asymCipher.setAsymPadding(padding);
-            asymCipher.exportTransformation(asymCipher.getTransformation(), dirPath + File.separator + "transformation.key");
+            asymCipher.exportTransformation(asymCipher.getTransformation(), dirPath + File.separator + "asym_transformation.key");
         }
 
         JOptionPane.showMessageDialog(null,
                 "Xuất khoá thành công!\n• public.key\n• private.key\nTransformation: " + asymCipher.getTransformation(),
                 "Thành công", JOptionPane.INFORMATION_MESSAGE);
-        fileController.updateStatus("Đã lưu các khoá và thông tin thuật toán vào file thành công");
+        fileController.updateStatus("Đã lưu các khoá và thông tin thuật toán thành công, tiếp tục tạo khoá đối xứng ");
     }
 
     public void encryptFileAsymmetric(AsymmetricFiletConfig config)

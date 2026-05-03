@@ -101,8 +101,13 @@ public abstract class AFileSymCipher implements IFileSymCipher {
 
     public abstract boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
 
-
-    public void exportKey(SecretKey key, String dest) throws IOException {
+    public void exportTransformation(String transformation, String dirPath)throws IOException {
+        // Save symmetric transformation
+        BufferedWriter writer = new BufferedWriter(new FileWriter(dirPath));
+        writer.write(transformation);
+        writer.close();
+    }
+    public void exportKey(SecretKey key,String dest) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
         byte[] keyEncoded = key.getEncoded();
         String keyText = Base64.getEncoder().encodeToString(keyEncoded);

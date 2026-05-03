@@ -8,9 +8,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
@@ -21,11 +21,12 @@ import java.util.Base64;
 public class SymmetricFileController {
 
     private final FileController fileController;
-    private  SymmetricPanel symmetricPanel;
+    private SymmetricPanel symmetricPanel;
 
     public SymmetricFileController(FileController fileController) {
         this.fileController = fileController;
     }
+
     public void setSymmetricPanel(SymmetricPanel panel) {
         this.symmetricPanel = panel;
     }
@@ -39,10 +40,11 @@ public class SymmetricFileController {
         byte[] encodedKey = fileController.currentKey.getEncoded();
         String keyText = Base64.getEncoder().encodeToString(encodedKey);
         keyArea.setText(keyText);
-        fileController.updateStatus("Đã có khóa, chọn mã hóa hoặc giải mã");
+        fileController.updateEncryptDecryptButtons();
+        fileController.updateStatus("Đã có khóa, vui lòng xuất hoặc sao chép khóa để sử dụng lại");
     }
 
-    public void importKey(AFileSymCipher cipher, JTextArea keyArea) {
+    public boolean importKey(AFileSymCipher cipher, JTextArea keyArea) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn file chứa khóa");
         int userSelection = fileChooser.showOpenDialog(null);
@@ -54,32 +56,50 @@ public class SymmetricFileController {
                 byte[] decodeKey = Base64.getDecoder().decode(encodeKey);
                 if (!hasValidKeyLength(decodeKey.length, cipher.getAlgorithm())) {
                     JOptionPane.showMessageDialog(null, "Khoá không phù hợp với thuật toán", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return false;
                 }
                 fileController.currentKey = new SecretKeySpec(decodeKey, cipher.getAlgorithm());
-                JOptionPane.showMessageDialog(null, "Nhập khóa từ file thành công");
                 keyArea.setText(encodeKey);
+                JOptionPane.showMessageDialog(null, "Nhập khóa từ file thành công");
+                fileController.updateEncryptDecryptButtons();
                 fileController.updateStatus("Đã nhập khóa, chọn mã hóa hoặc giải mã");
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Lỗi khi nhập khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return false;
             }
         }
+        return true;
     }
 
-    public void exportKey() throws NoSuchAlgorithmException {
+    public void exportKey(AFileSymCipher symCipher, String mode, String padding) throws NoSuchAlgorithmException, IOException {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Lưu khóa dưới dạng file");
+        fileChooser.setDialogTitle("Chọn đường dẫn để lưu file chứa khoá");
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int userSelection = fileChooser.showSaveDialog(null);
 
+        if (fileController.currentKey == null) {
+            JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                byte[] keyToBytes = fileController.currentKey.getEncoded();
-                String encodedKey = Base64.getEncoder().encodeToString(keyToBytes);
-                writer.write(encodedKey);
-                JOptionPane.showMessageDialog(null, "Lưu khóa vào file thành công");
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null, "Lỗi khi xuất khóa");
+            File selectedDir = fileChooser.getSelectedFile();
+            String dirPath = selectedDir.getAbsolutePath();
+            if (symCipher.getKey() == null) {
+                JOptionPane.showMessageDialog(null, "Chưa tạo cặp khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+            String keyFilePath = dirPath + File.separator + "symmetric.key";
+            String transFilePath = dirPath + File.separator + "sym_transformation.key";
+
+            symCipher.setMode(mode);
+            symCipher.setPadding(padding);
+            symCipher.exportKey(fileController.currentKey, keyFilePath);
+            symCipher.exportTransformation(symCipher.getTransformation(), transFilePath);
+            JOptionPane.showMessageDialog(null, "Lưu khóa vào file thành công");
+
+            fileController.updateStatus("Đã lưu khoá và thông tin thuật toán thành công, tiếp tục mã hóa hoặc giải mã");
+
         }
     }
 
@@ -143,6 +163,24 @@ public class SymmetricFileController {
         }
     }
 
+    public void setSymmetricCipherInfo(SymmetricPanel symmetricPanel) throws IOException {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa thông tin thuật toán");
+        int option = fileChooser.showOpenDialog(null);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile))) {
+                String transformation = reader.readLine();
+                String[] asymParts = transformation.split("/");
+                symmetricPanel.modeCombo.setSelectedItem(asymParts[1]);
+                symmetricPanel.paddingCombo.setSelectedItem(asymParts[2]);
+                JOptionPane.showMessageDialog(null, "Đã lấy xong thông tin thuật toán", "Thông Báo", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Không thể đọc thông tin thuật toán bất đối xứng", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private boolean hasValidKeyLength(int keyLength, String algorithm) {
         int[] expectedKeyLength = getExpectedLength(algorithm);
         for (int expectKey : expectedKeyLength) {
@@ -161,5 +199,4 @@ public class SymmetricFileController {
                 throw new IllegalArgumentException("Không hỗ trợ thuật toán này: " + algorithm);
         }
     }
-
 }

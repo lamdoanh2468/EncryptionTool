@@ -127,23 +127,28 @@ public class AsymmetricPanel extends JPanel {
             );
         });
         importPrivateKeyButton.addActionListener(e -> {
-            asymmetricFileController.importPrivateKey(
-                    fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
+            String algo = (String) algoCombo.getSelectedItem();
+            AFileAsymCipher asymCipher = fileController.getAsymCipher(algo);
+
+            boolean success = asymmetricFileController.importPrivateKey(
+                    asymCipher,
                     privateKeyArea
             );
-            try {
-                asymmetricFileController.setAsymmetricCipherInfo(this);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            if (success) {
+                try {
+                    asymmetricFileController.setAsymmetricCipherInfo(this);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
+
         });
         exportKeyPairButton.addActionListener(e -> {
             try {
                 asymmetricFileController.exportKeyPair(
                         fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                         (String) asymModeCombo.getSelectedItem(),
-                        (String) asymPaddingCombo.getSelectedItem(),
-                        fileController.getSymCipher((String) symAlgoCombo.getSelectedItem())
+                        (String) asymPaddingCombo.getSelectedItem()
                 );
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
@@ -320,6 +325,25 @@ public class AsymmetricPanel extends JPanel {
             fileController.currentKey = null;
             fileController.updateStatus("Bạn vừa mới thay đổi tham số thuật toán , vui lòng tạo lại khoá đối xứng");
         }
+    }
+
+    public void setCombosEnabled(boolean enabled) {
+        //  Asymmetric combos
+        this.asymKeySizeCombo.setEnabled(enabled);
+        this.asymModeCombo.setEnabled(enabled);
+        this.asymPaddingCombo.setEnabled(enabled);
+        //  Symmetric combos
+        this.symAlgoCombo.setEnabled(enabled);
+        this.symKeySizeCombo.setEnabled(enabled);
+        this.symModeCombo.setEnabled(enabled);
+        this.symPaddingCombo.setEnabled(enabled);
+        //  Buttons
+        this.genKeyPairButton.setEnabled(enabled);
+        this.genSymKeyButton.setEnabled(enabled);
+        this.importPublicKeyButton.setEnabled(enabled);
+        this.importPrivateKeyButton.setEnabled(enabled);
+        this.exportKeyPairButton.setEnabled(enabled);
+        this.removeAllButton.setEnabled(enabled);
     }
 }
 

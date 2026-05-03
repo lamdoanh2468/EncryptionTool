@@ -29,14 +29,12 @@ public class FileSelectorPanel extends JPanel {
     public final JButton exportButton;
 
     public final FileController fileController;
-
-
-    private final CardLayout keyCardLayout = new CardLayout();
-    private final JPanel keyCardPanel = new JPanel(keyCardLayout);
     public final SymmetricPanel symmetricPanel;
     public final AsymmetricPanel asymmetricPanel;
+    private final CardLayout keyCardLayout = new CardLayout();
+    private final JPanel keyCardPanel = new JPanel(keyCardLayout);
 
-    public FileSelectorPanel(FileController fileController,SymmetricFileController symmetricFileController, AsymmetricFileController asymmetricFileController) {
+    public FileSelectorPanel(FileController fileController, SymmetricFileController symmetricFileController, AsymmetricFileController asymmetricFileController) {
 
         this.fileController = fileController;
 
@@ -58,6 +56,7 @@ public class FileSelectorPanel extends JPanel {
         importButton = symmetricPanel.importButton;
         exportButton = symmetricPanel.exportButton;
 
+        setCombosEnabled(false);
         keyCardPanel.setOpaque(false);
         keyCardPanel.add(symmetricPanel, "Symmetric");
         keyCardPanel.add(asymmetricPanel, "Asymmetric");
@@ -138,5 +137,18 @@ public class FileSelectorPanel extends JPanel {
     public AsymmetricFiletConfig buildAsymmetricEncryptConfig(File selectedFile) {
         String asymAlgo = (String) algoCombo.getSelectedItem();
         return asymmetricPanel.buildEncryptConfig(asymAlgo, selectedFile);
+    }
+
+    public void setCombosEnabled(boolean enabled) {
+        typeCombo.setEnabled(enabled);
+        algoCombo.setEnabled(enabled);
+
+        // Symmetric Panel
+        symmetricPanel.setCombosEnabled(enabled);
+
+        // Asymmetric Panel
+        asymmetricPanel.setCombosEnabled(enabled);
+
+
     }
 }

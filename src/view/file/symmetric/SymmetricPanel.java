@@ -9,6 +9,7 @@ import view.file.FilePanelUI;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 public class SymmetricPanel extends JPanel {
@@ -92,8 +93,14 @@ public class SymmetricPanel extends JPanel {
     }
 
     public void bindActions(JComboBox<String> algoCombo) {
-        modeCombo.addActionListener(e -> applySelectedCipherOptions((String) algoCombo.getSelectedItem()));
-        paddingCombo.addActionListener(e -> applySelectedCipherOptions((String) algoCombo.getSelectedItem()));
+        modeCombo.addActionListener(e ->
+        {
+            applySelectedCipherOptions((String) algoCombo.getSelectedItem());
+        });
+        paddingCombo.addActionListener(e ->
+        {
+            applySelectedCipherOptions((String) algoCombo.getSelectedItem());
+        });
 
         genButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
@@ -111,13 +118,22 @@ public class SymmetricPanel extends JPanel {
         importButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
             AFileSymCipher cipher = fileController.getSymCipher(algo);
-            symmetricFileController.importKey(cipher, keyArea);
+            boolean success = symmetricFileController.importKey(cipher, keyArea);
+            if (success) {
+                try {
+                    symmetricFileController.setSymmetricCipherInfo(this);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
         });
 
         exportButton.addActionListener(e -> {
+            String algo = (String) algoCombo.getSelectedItem();
+            AFileSymCipher cipher = fileController.getSymCipher(algo);
             try {
-                symmetricFileController.exportKey();
-            } catch (NoSuchAlgorithmException ex) {
+                symmetricFileController.exportKey(cipher, getSelectedMode(), getSelectedPadding());
+            } catch (NoSuchAlgorithmException | IOException ex) {
                 throw new RuntimeException(ex);
             }
         });
@@ -167,6 +183,19 @@ public class SymmetricPanel extends JPanel {
         };
         keyLabel.setText(text);
         keyArea.setText("");
+    }
+
+    public void setCombosEnabled(boolean enabled) {
+        // Key size combo
+       this.keySizeCombo.setEnabled(enabled);
+        this.modeCombo.setEnabled(enabled);
+        this.paddingCombo.setEnabled(enabled);
+        // Buttons
+        this.genButton.setEnabled(enabled);
+        this.copyButton.setEnabled(enabled);
+        this.importButton.setEnabled(enabled);
+        this.exportButton.setEnabled(enabled);
+        this.removeKeyButton.setEnabled(enabled);
     }
 }
 
