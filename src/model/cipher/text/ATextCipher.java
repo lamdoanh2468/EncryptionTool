@@ -1,4 +1,4 @@
-package model.text;
+package model.cipher.text;
 
 public abstract class ATextCipher<K> implements ITextCipher<K> {
 

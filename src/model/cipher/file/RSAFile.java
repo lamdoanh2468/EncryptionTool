@@ -1,4 +1,4 @@
-package model.file;
+package model.cipher.file;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -11,9 +11,9 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 
-public class RSA extends AFileAsymCipher {
+public class RSAFile extends AFileAsymCipher {
 
-    public RSA() {
+    public RSAFile() {
         super("RSA", "ECB", "PKCS1Padding");
         symCipher = new AES();
         keySizes = Arrays.asList(1024, 2048);
@@ -24,13 +24,13 @@ public class RSA extends AFileAsymCipher {
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException, IllegalBlockSizeException, BadPaddingException {
 
-        RSA fileRSA = new RSA();
-        fileRSA.genKeyPair("RSA", 2048, "C:\\Users\\lamdo\\Desktop");
-        fileRSA.genSymKey("AES", 128);
+        RSAFile fileRSAFile = new RSAFile();
+        fileRSAFile.genKeyPair("RSA", 2048, "C:\\Users\\lamdo\\Desktop");
+        fileRSAFile.genSymKey("AES", 128);
 
-        fileRSA.encryptFile("C:\\Users\\lamdo\\Desktop\\1.pdf", "C:\\Users\\lamdo\\Desktop\\2.pdf");
+        fileRSAFile.encryptFile("C:\\Users\\lamdo\\Desktop\\1.pdf", "C:\\Users\\lamdo\\Desktop\\2.pdf");
 
-        fileRSA.decryptFile("C:\\Users\\lamdo\\Desktop\\2.pdf", "C:\\Users\\lamdo\\Desktop\\3.pdf");
+        fileRSAFile.decryptFile("C:\\Users\\lamdo\\Desktop\\2.pdf", "C:\\Users\\lamdo\\Desktop\\3.pdf");
     }
 
     public void genSymKey(String algorithm, int keySize) throws NoSuchAlgorithmException {

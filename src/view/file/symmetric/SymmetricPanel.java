@@ -2,7 +2,7 @@ package view.file.symmetric;
 
 import controller.file.FileController;
 import controller.file.SymmetricFileController;
-import model.file.AFileSymCipher;
+import model.cipher.file.AFileSymCipher;
 import view.MainFrame;
 import view.file.FilePanelUI;
 
@@ -11,6 +11,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 public class SymmetricPanel extends JPanel {
 
@@ -47,8 +48,8 @@ public class SymmetricPanel extends JPanel {
 
         genButton = FilePanelUI.createOutlineButton("Tạo khóa", MainFrame.ACCENT);
         copyButton = FilePanelUI.createOutlineButton("Sao chép khóa", new Color(99, 102, 241));
-        importButton = FilePanelUI.createOutlineButton("Nhập khóa từ file", new Color(75, 85, 99));
         exportButton = FilePanelUI.createOutlineButton("Xuất khóa ra file", new Color(16, 185, 129));
+        importButton = FilePanelUI.createOutlineButton("Nhập khóa từ file", new Color(75, 85, 99));
         removeKeyButton = FilePanelUI.createOutlineButton("Xoá khoá", new Color(255, 65, 54));
 
         add(createContentPanel(), BorderLayout.CENTER);
@@ -108,7 +109,7 @@ public class SymmetricPanel extends JPanel {
             Integer keySize = (Integer) keySizeCombo.getSelectedItem();
             try {
                 symmetricFileController.genKey(cipher, keySize, keyArea);
-            } catch (NoSuchAlgorithmException ex) {
+            } catch (NoSuchAlgorithmException | NoSuchProviderException ex) {
                 throw new RuntimeException(ex);
             }
         });
@@ -169,8 +170,8 @@ public class SymmetricPanel extends JPanel {
         row.setBorder(new EmptyBorder(18, 0, 0, 0));
         row.add(genButton);
         row.add(copyButton);
-        row.add(importButton);
         row.add(exportButton);
+        row.add(importButton);
         row.add(removeKeyButton);
         return row;
     }
@@ -178,7 +179,9 @@ public class SymmetricPanel extends JPanel {
     private void updateKeyLabel(String algo) {
         String text = switch (algo) {
             case "AES" -> "KEY — 128/192/256 bit";
+            case "Blowfish", "TwoFish", "Camellia", "RC5" -> "KEY — 64/128/256 bit";
             case "DES" -> "KEY — 64 bit";
+            case "DESede" -> "KEY — 192 bit";
             default -> "KEY";
         };
         keyLabel.setText(text);

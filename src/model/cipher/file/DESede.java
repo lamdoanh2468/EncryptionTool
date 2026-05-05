@@ -1,4 +1,4 @@
-package model.file;
+package model.cipher.file;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -10,25 +10,25 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
-public class AES extends AFileSymCipher {
+public class DESede extends AFileSymCipher {
 
-    public AES() {
-        super("AES", "CBC", "PKCS5Padding");
-        keySizes = Arrays.asList(128, 192, 256);
+    public DESede() {
+        super("DESede", "CBC", "PKCS5Padding");
+        keySizes = Arrays.asList(112, 168);
     }
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
-        AES aes = new AES();
-        aes.genKey(aes.keySizes.get(2));
-        aes.encryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx");
-        aes.decryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_dec.pptx");
+        DESede desede = new DESede();
+        desede.genKey(desede.keySizes.get(1));
+        desede.encryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx");
+        desede.decryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_dec.pptx");
 
     }
 
     @Override
     public String getAlgorithm() {
-        return "AES";
+        return "DESede";
     }
 
     @Override
@@ -46,13 +46,13 @@ public class AES extends AFileSymCipher {
     public SecretKey genKey(int keySize) throws NoSuchAlgorithmException {
         // TODO Auto-generated method stub
         validateKeySize(keySize);
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        KeyGenerator keyGen = KeyGenerator.getInstance("DESede");
         keyGen.init(keySize);
         key = keyGen.generateKey();
         return key;
     }
 
-    // ==================== encrypt / decrypt text ====================
+    // encrypt / decrypt text
     @Override
     public byte[] encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         // TODO Auto-generated method stub
@@ -101,10 +101,7 @@ public class AES extends AFileSymCipher {
         while ((count = cis.read(readBuffer)) != -1) {
             bos.write(readBuffer, 0, count);
         }
-//        readBuffer = cipher.doFinal();
-//        if (readBuffer != null) {
-//            bos.write(readBuffer);
-//        }
+//
         bis.close();
         bos.flush();
         bos.close();
@@ -139,3 +136,4 @@ public class AES extends AFileSymCipher {
     }
 
 }
+

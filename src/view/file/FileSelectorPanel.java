@@ -3,7 +3,7 @@ package view.file;
 import controller.file.AsymmetricFileController;
 import controller.file.FileController;
 import controller.file.SymmetricFileController;
-import model.file.config.AsymmetricFiletConfig;
+import model.cipher.file.config.AsymmetricFiletConfig;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.symmetric.SymmetricPanel;
 
@@ -12,7 +12,7 @@ import java.awt.*;
 import java.io.File;
 
 public class FileSelectorPanel extends JPanel {
-    private static final String[] SYMMETRIC_ALGOS = {"AES", "DES"};
+    private static final String[] SYMMETRIC_ALGOS = {"AES", "Blowfish", "Twofish", "Camellia", "DES", "DESede","RC5"};
     private static final String[] ASYMMETRIC_ALGOS = {"RSA"};
 
     public final JComboBox<String> typeCombo;

@@ -1,4 +1,4 @@
-package model.file;
+package model.cipher.file;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
+import java.security.NoSuchProviderException;
 import java.util.Base64;
 import java.util.List;
 
@@ -85,29 +85,30 @@ public abstract class AFileSymCipher implements IFileSymCipher {
     public abstract List<String> getSupportedPaddings();
 
 
-    public String encryptBase64(String text) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public String encryptBase64(String text) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, NoSuchProviderException {
         byte[] encrypted = encrypt(text);
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-    public abstract SecretKey genKey(int keySize) throws NoSuchAlgorithmException;
+    public abstract SecretKey genKey(int keySize) throws NoSuchAlgorithmException, NoSuchProviderException;
 
-    public abstract byte[] encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
+    public abstract byte[] encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException;
 
-    public abstract String decrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
+    public abstract String decrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException;
 
     public abstract boolean encryptFile(String src, String des)
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException;
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, NoSuchProviderException;
 
-    public abstract boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException;
+    public abstract boolean decryptFile(String src, String des) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException;
 
-    public void exportTransformation(String transformation, String dirPath)throws IOException {
+    public void exportTransformation(String transformation, String dirPath) throws IOException {
         // Save symmetric transformation
         BufferedWriter writer = new BufferedWriter(new FileWriter(dirPath));
         writer.write(transformation);
         writer.close();
     }
-    public void exportKey(SecretKey key,String dest) throws IOException {
+
+    public void exportKey(SecretKey key, String dest) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
         byte[] keyEncoded = key.getEncoded();
         String keyText = Base64.getEncoder().encodeToString(keyEncoded);

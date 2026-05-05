@@ -3,7 +3,7 @@ package view.file;
 import controller.file.AsymmetricFileController;
 import controller.file.FileController;
 import controller.file.SymmetricFileController;
-import model.file.config.AsymmetricFiletConfig;
+import model.cipher.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
 
 import javax.swing.*;
@@ -72,7 +72,7 @@ public class FilePanel extends JPanel {
                     );
                 }
             } catch (Exception ex) {
-                fileController.handleCipherException(ex, "mã hóa", "encrypt");
+                fileController.handleCipherException(ex, "mã hóa");
             }
         });
         decryptFileBtn = createActionButton("Giải mã File", new Color(60, 180, 120));
@@ -92,7 +92,7 @@ public class FilePanel extends JPanel {
                     );
                 }
             } catch (Exception ex) {
-                fileController.handleCipherException(ex, "giải mã", "decrypt");
+                fileController.handleCipherException(ex, "giải mã");
             }
         });
         encryptFileBtn.setPreferredSize(new Dimension(180, 44));

@@ -1,4 +1,4 @@
-package model.text;
+package model.cipher.text;
 
 public class Vigenere extends ATextCipher<String> {
 

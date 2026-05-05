@@ -1,6 +1,6 @@
 package controller.file;
 
-import model.file.*;
+import model.cipher.file.*;
 import view.MainFrame;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.symmetric.SymmetricPanel;
@@ -19,11 +19,19 @@ import java.security.*;
 public class FileController {
     private final MainFrame view;
 
-    // Ciphers algorithms
-    private final AES aes = new AES();
-    private final DES des = new DES();
-    private final RSA rsa = new RSA();
+    // Ciphers
+    private  AFileSymCipher currentSymCipher;
+    private AFileAsymCipher currentAsymCipher;
 
+    public AFileSymCipher getSymCipher(String algoName) {
+        this.currentSymCipher = CipherFactory.getSymmetricCipher(algoName);
+        return currentSymCipher;
+    }
+
+    public AFileAsymCipher getAsymCipher(String algoName) {
+        this.currentAsymCipher = CipherFactory.getAsymmetricCipher(algoName);
+        return currentAsymCipher;
+    }
     // Controllers
     private final SymmetricFileController symmetricController;
     private final AsymmetricFileController asymmetricController;
@@ -64,7 +72,7 @@ public class FileController {
     }
 
 
-    public void handleCipherException(Exception ex, String action, String operation) {
+    public void handleCipherException(Exception ex, String action) {
         Throwable root = ex;
         while (root.getCause() != null) {
             root = root.getCause();
@@ -122,6 +130,10 @@ public class FileController {
     }
 
     public void copyKey(JTextArea keyArea) {
+        if (keyArea.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Không có khóa để sao chép", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(keyArea.getText()), null);
         JOptionPane.showMessageDialog(null, "Sao chép khóa thành công");
     }
@@ -164,23 +176,6 @@ public class FileController {
         }
     }
 
-    public AFileSymCipher getSymCipher(String algoName) {
-        if (algoName == null) return null;
-        return switch (algoName) {
-            case "AES" -> aes;
-            case "DES" -> des;
-            default -> null;
-        };
-
-    }
-
-    public AFileAsymCipher getAsymCipher(String algoName) {
-        if (algoName == null) return null;
-        return switch (algoName) {
-            case "RSA" -> rsa;
-            default -> null;
-        };
-    }
 
     public void setSymmetricPanel(SymmetricPanel panel) {
         this.symmetricController.setSymmetricPanel(panel);
@@ -204,6 +199,7 @@ public class FileController {
         view.filePanel.encryptFileBtn.setEnabled(hasFile && hasKey);
         view.filePanel.decryptFileBtn.setEnabled(hasFile && hasKey);
     }
+
     public void setCombosEnabled(boolean enabled) {
         if (view.filePanel != null && view.filePanel.fileSelectorPanel != null) {
             view.filePanel.fileSelectorPanel.setCombosEnabled(enabled);

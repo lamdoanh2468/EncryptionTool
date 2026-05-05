@@ -1,4 +1,4 @@
-package model.file;
+package model.cipher.file;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;

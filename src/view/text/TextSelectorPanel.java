@@ -1,7 +1,9 @@
 package view.text;
 
 import controller.text.TextController;
+import org.jetbrains.annotations.NotNull;
 import view.MainFrame;
+import view.file.FilePanelUI;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -12,7 +14,11 @@ public class TextSelectorPanel extends JPanel {
             {"Caesar", "Affine", "Vigenere", "Hill", "Thay thế", "Hoán vị"};
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
+    // Traditional symmetric keys
     public final JTextArea keyArea;
+    // Asymmetric keys
+    public JTextArea publicArea;
+    public JTextArea privateArea;
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
 
@@ -31,7 +37,7 @@ public class TextSelectorPanel extends JPanel {
         // Row 1
         JPanel topRow = new JPanel(new GridLayout(1, 2, 14, 0));
         topRow.setOpaque(false);
-        typeCombo = createDropdown(new String[]{"Đối xứng", "Bất đối xứng"});
+        typeCombo = createDropdown(new String[]{"Đối xứng", "Bất đối xứng", "Hàm Băm"});
         algoCombo = createDropdown(SYMMETRIC_ALGOS);
         topRow.add(wrapLabeled("LOẠI MÃ HÓA", typeCombo));
         topRow.add(wrapLabeled("THUẬT TOÁN", algoCombo));
@@ -39,9 +45,13 @@ public class TextSelectorPanel extends JPanel {
 
         // Key manager cards
         keyCardPanel.setOpaque(false);
+        keyCardPanel.setPreferredSize(new Dimension(0, 130));
+        keyCardPanel.setMinimumSize(new Dimension(0, 130));
         keyArea = makeKeyArea();
 
         keyCardPanel.add(buildSymmetricKeyCard(), "Symmetric");
+        keyCardPanel.add(buildAsymmetricKeyCard(), "Asymmetric");
+        keyCardPanel.add(buildHashCard(), "Hash");
         add(keyCardPanel, BorderLayout.CENTER);
 
         // Listeners
@@ -53,6 +63,37 @@ public class TextSelectorPanel extends JPanel {
         onAlgoChanged();
     }
 
+    private JPanel buildHashCard() {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setOpaque(false);
+
+        JLabel hashInfo = new JLabel("Hàm băm không cần khóa");
+        hashInfo.setFont(new Font("SansSerif", Font.BOLD, 16));
+        hashInfo.setForeground(Color.RED);
+        hashInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JTextArea helpText = buildHashTextHelp();
+
+        card.add(hashInfo);
+        card.add(helpText);
+        return card;
+    }
+
+    @NotNull
+    private static JTextArea buildHashTextHelp() {
+        JTextArea helpText = new JTextArea(
+                "- Ấn 'BĂM VĂN BẢN' để tạo mã băm mới.\n" +
+                        "- Dán mã băm vào ô 'Kết quả' rồi ấn 'KIỂM TRA' để kiểm tra khớp với văn bản gốc."
+        );
+        helpText.setEditable(false);
+        helpText.setOpaque(false);
+        helpText.setLineWrap(true);
+        helpText.setWrapStyleWord(true);
+        helpText.setFont(new Font("SansSerif", Font.BOLD, 15));
+        helpText.setBorder(new EmptyBorder(10, 0, 0, 0));
+        return helpText;
+    }
 
     private JPanel buildSymmetricKeyCard() {
         JPanel card = new JPanel(new BorderLayout(8, 0));
@@ -73,14 +114,92 @@ public class TextSelectorPanel extends JPanel {
         left.add(scroll, BorderLayout.CENTER);
 
         card.add(left, BorderLayout.CENTER);
-        card.add(buildKeyButtonCol(keyArea, "txt"), BorderLayout.EAST);
+        card.add(buildKeyButtonCol(), BorderLayout.EAST);
+        return card;
+    }
+    private JPanel buildAsymmetricKeyCard() {
+        JPanel card = new JPanel(new BorderLayout(8, 0));
+        card.setOpaque(false);
+
+        // PUBLIC KEY
+        JPanel publicPanel = new JPanel(new BorderLayout(0, 4));
+        publicPanel.setOpaque(false);
+        JLabel lblPublic = new JLabel("PUBLIC KEY");
+        lblPublic.setFont(new Font("SansSerif", Font.BOLD, 10));
+        lblPublic.setForeground(MainFrame.TXT_LABEL);
+
+        publicArea = makeKeyArea();
+        publicArea.setRows(3);
+        JScrollPane scrollPub = new JScrollPane(publicArea);
+
+        publicPanel.add(lblPublic, BorderLayout.NORTH);
+        publicPanel.add(scrollPub, BorderLayout.CENTER);
+
+        // PRIVATE KEY
+        JPanel privatePanel = new JPanel(new BorderLayout(0, 4));
+        privatePanel.setOpaque(false);
+        JLabel lblPrivate = new JLabel("PRIVATE KEY");
+        lblPrivate.setFont(new Font("SansSerif", Font.BOLD, 10));
+        lblPrivate.setForeground(MainFrame.TXT_LABEL);
+
+        privateArea = makeKeyArea();
+        privateArea.setRows(3);
+        JScrollPane scrollPri = new JScrollPane(privateArea);
+
+        privatePanel.add(lblPrivate, BorderLayout.NORTH);
+        privatePanel.add(scrollPri, BorderLayout.CENTER);
+
+        // BUTTON COLUMN
+        JPanel btnCol = new JPanel();
+        btnCol.setLayout(new BoxLayout(btnCol, BoxLayout.Y_AXIS));
+        btnCol.setOpaque(false);
+        btnCol.setBorder(new EmptyBorder(18, 0, 0, 0));
+
+        // Tạo cặp khóa
+        JButton btnGen = createButton("Tạo cặp khóa", MainFrame.ACCENT);
+        btnGen.addActionListener(e -> textController.genKeyPair(publicArea, privateArea));
+        btnCol.add(btnGen);
+        btnCol.add(Box.createVerticalStrut(6));
+
+        // Copy Public
+        JButton btnCopyPub = createButton("Copy Public", new Color(70, 70, 70));
+        btnCopyPub.addActionListener(e -> textController.copyKey(publicArea));
+        btnCol.add(btnCopyPub);
+        btnCol.add(Box.createVerticalStrut(6));
+
+        // Copy Private
+        JButton btnCopyPri = createButton("Copy Private", new Color(70, 70, 70));
+        btnCopyPri.addActionListener(e -> textController.copyKey(privateArea));
+        btnCol.add(btnCopyPri);
+        btnCol.add(Box.createVerticalStrut(6));
+
+        // Import Public
+        JButton btnImportPub = createButton("Import Public", new Color(70, 70, 70));
+        btnImportPub.addActionListener(e -> textController.importKey(publicArea));
+        btnCol.add(btnImportPub);
+        btnCol.add(Box.createVerticalStrut(6));
+
+        // Import Private
+        JButton btnImportPri = createButton("Import Private", new Color(70, 70, 70));
+        btnImportPri.addActionListener(e -> textController.importKey(privateArea));
+        btnCol.add(btnImportPri);
+
+        // Main layout
+        JPanel main = new JPanel(new GridLayout(1, 2, 8, 0));
+        main.setOpaque(false);
+        main.add(publicPanel);
+        main.add(privatePanel);
+
+        card.add(main, BorderLayout.CENTER);
+        card.add(btnCol, BorderLayout.EAST);
+
         return card;
     }
 
 
     //  Key buttons
 
-    private JPanel buildKeyButtonCol(JTextArea area, String ext) {
+    private JPanel buildKeyButtonCol() {
         JPanel col = new JPanel();
         col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS));
         col.setOpaque(false);
@@ -104,17 +223,13 @@ public class TextSelectorPanel extends JPanel {
 
         //Import Button
         importButton = createButton("Nhập khóa từ file ", new Color(70, 70, 70));
-        importButton.addActionListener(e -> {
-            textController.importKey(keyArea);
-        });
+        importButton.addActionListener(e -> textController.importKey(keyArea));
         col.add(importButton);
         col.add(Box.createVerticalStrut(15));
 
         //Export Button
         exportButton = createButton("Xuất khóa", new Color(70, 70, 70));
-        exportButton.addActionListener(e -> {
-            textController.exportKey(keyArea, "txt");
-        });
+        exportButton.addActionListener(e -> textController.exportKey(keyArea, "txt"));
         col.add(exportButton);
 
 
@@ -125,15 +240,30 @@ public class TextSelectorPanel extends JPanel {
 
     private void onTypeChanged() {
         String type = (String) typeCombo.getSelectedItem();
-        if ("Bất đối xứng".equals(type)) {
+
+        if ("Hàm Băm".equals(type)) {
+            // Hash mode
+            algoCombo.removeAllItems();
+            algoCombo.addItem("MD5");
+            algoCombo.addItem("SHA-1");
+            algoCombo.addItem("SHA-256");
+            algoCombo.addItem("SHA-512");
+            algoCombo.addItem("SHA3-256");
+            keyCardLayout.show(keyCardPanel, "Hash");
+            textController.toggleOutputArea(true);
+
+        } else if ("Bất đối xứng".equals(type)) {
             algoCombo.removeAllItems();
             algoCombo.addItem("RSA");
             keyCardLayout.show(keyCardPanel, "Asymmetric");
+
         } else {
+            // Đối xứng
             if (algoCombo.getItemCount() != SYMMETRIC_ALGOS.length) {
                 algoCombo.removeAllItems();
                 for (String a : SYMMETRIC_ALGOS) algoCombo.addItem(a);
             }
+            keyCardLayout.show(keyCardPanel, "Symmetric");
             onAlgoChanged();
         }
     }
@@ -141,6 +271,14 @@ public class TextSelectorPanel extends JPanel {
     private void onAlgoChanged() {
         String algo = (String) algoCombo.getSelectedItem();
         if (algo == null) return;
+
+        String currentType = (String) typeCombo.getSelectedItem();
+
+        if ("Hàm Băm".equals(currentType)) {
+            keyCardLayout.show(keyCardPanel, "Hash");
+            return;
+        }
+
         keyCardLayout.show(keyCardPanel, "Symmetric");
         updateKeyHint(algo);
     }
@@ -225,13 +363,6 @@ public class TextSelectorPanel extends JPanel {
     }
 
     private JPanel wrapLabeled(String labelText, JComponent comp) {
-        JPanel p = new JPanel(new BorderLayout(0, 4));
-        p.setOpaque(false);
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("SansSerif", Font.BOLD, 10));
-        label.setForeground(MainFrame.TXT_LABEL);
-        p.add(label, BorderLayout.NORTH);
-        p.add(comp, BorderLayout.CENTER);
-        return p;
+        return FilePanelUI.createLabeledFieldPanel(labelText, comp);
     }
 }

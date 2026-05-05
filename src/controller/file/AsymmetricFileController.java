@@ -1,7 +1,7 @@
 package controller.file;
 
-import model.file.AFileAsymCipher;
-import model.file.config.AsymmetricFiletConfig;
+import model.cipher.file.AFileAsymCipher;
+import model.cipher.file.config.AsymmetricFiletConfig;
 import view.file.asymmetric.AsymmetricPanel;
 
 import javax.crypto.BadPaddingException;
@@ -12,10 +12,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -138,7 +135,7 @@ public class AsymmetricFileController {
 
     public void encryptFileAsymmetric(AsymmetricFiletConfig config)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException,
-            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
 
         if (fileController.currentPublicKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -176,7 +173,7 @@ public class AsymmetricFileController {
 
     public void decryptFileAsymmetric(AsymmetricFiletConfig config)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException,
-            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
 
         if (fileController.currentPrivateKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);

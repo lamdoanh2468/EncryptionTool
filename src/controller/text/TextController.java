@@ -1,6 +1,7 @@
 package controller.text;
 
-import model.text.*;
+import model.cipher.text.*;
+import model.hash.*;
 import view.MainFrame;
 
 import javax.swing.*;
@@ -11,13 +12,16 @@ import java.io.*;
 public class TextController {
     private final MainFrame view;
 
-    // Text cipher models
+    // Text symmetric cipher models
     private final Caesar caesar = new Caesar();
     private final Affine affine = new Affine();
     private final Vigenere vigenere = new Vigenere();
     private final Hill hill = new Hill();
     private final Substitution substitution = new Substitution();
     private final Permutation permutation = new Permutation();
+
+    // Text asymmetric cipher models
+    private final RSAText rsa = new RSAText();
 
     public TextController(MainFrame view) {
         this.view = view;
@@ -131,8 +135,9 @@ public class TextController {
     public void copyKey(JTextArea keyArea) {
         Toolkit.getDefaultToolkit().getSystemClipboard()
                 .setContents(new StringSelection(keyArea.getText()), null);
-        JOptionPane.showMessageDialog(null, "Sao chép khóa thành công");
+        JOptionPane.showMessageDialog(null, "Sao chép thành công");
     }
+
     public ATextCipher<?> getCipher(String algoName) {
         if (algoName == null) return null;
         return switch (algoName) {
@@ -142,8 +147,145 @@ public class TextController {
             case "Thay thế" -> substitution;
             case "Hoán vị" -> permutation;
             case "Hill" -> hill;
+            case "RSA" -> rsa;
             default -> null;
         };
     }
 
+    // HÀM BĂM
+
+    public void hashText(String algo, String text, JTextArea outputArea) {
+        if (text == null || text.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần băm!");
+            return;
+        }
+
+        try {
+            AFileHash hasher = getHashInstance(algo);
+            byte[] hashBytes = hasher.hash(text);
+            String hexResult = bytesToHex(hashBytes);
+
+            outputArea.setText(hexResult);
+            JOptionPane.showMessageDialog(null, "Băm thành công (" + algo + ")");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(view, "Lỗi khi băm: " + e.getMessage());
+        }
+    }
+
+
+
+    public void verifyHash(String algo, String text, String expectedHash) {
+        if (text == null || text.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần kiểm tra!");
+            return;
+        }
+        if (expectedHash == null || expectedHash.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập hàm băm cần kiểm tra!");
+            return;
+        }
+
+        try {
+            AFileHash hasher = getHashInstance(algo);
+            byte[] actualHash = hasher.hash(text);
+            String actualHex = bytesToHex(actualHash);
+
+            boolean isMatch = actualHex.equalsIgnoreCase(expectedHash.trim());
+
+            if (isMatch) {
+                JOptionPane.showMessageDialog(null, "Giá trị băm khớp với văn bản gốc");
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "Giá trị băm KHÔNG KHỚP!\n" +
+                                "Hash bạn nhập : " + expectedHash + "\n" +
+                                "Hash tính được: " + actualHex);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(view, "Lỗi khi kiểm tra hash: " + e.getMessage());
+        }
+    }
+
+
+    private AFileHash getHashInstance(String algo) {
+        if (algo == null) return new SHA256();
+
+        return switch (algo) {
+            case "MD5" -> new MD5();
+            case "SHA-1" -> new SHA1();
+            case "SHA-224" -> new SHA224();
+            case "SHA-256" -> new SHA256();
+            case "SHA-384" -> new SHA384();
+            case "SHA-512" -> new SHA512();
+            default -> throw new IllegalStateException("Unexpected hash function: " + algo);
+        };
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+    public void toggleOutputArea(boolean enable) {
+        if (view.textPanel != null && view.textPanel.outputArea != null) {
+            view.textPanel.outputArea.setEditable(enable);
+            view.textPanel.outputArea.setVisible(enable);
+        }
+    }
+
+    public void genKeyPair(JTextArea publicArea, JTextArea privateArea) {
+        rsa.genKey();
+        publicArea.setText(rsa.getPublicKeyText());
+        privateArea.setText(rsa.getPrivateKeyText());
+    }
+
+    // Handling RSA Text Encryption and Decryption
+    public void encryptRSA(String plainText, JTextArea publicKeyArea, JTextArea outputArea) {
+        if (plainText == null || plainText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần mã hóa!");
+            return;
+        }
+        if (publicKeyArea.getText() == null || publicKeyArea.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập hoặc tạo Public Key!");
+            return;
+        }
+
+        try {
+            // Load public key from text area
+            rsa.loadPublicKeyFromText(publicKeyArea.getText().trim());
+
+            String encrypted = rsa.encrypt(plainText, rsa.getKeyPair());
+            outputArea.setText(encrypted);
+            JOptionPane.showMessageDialog(null, "Mã hóa RSA thành công!");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(view, "Lỗi mã hóa RSA: " + e.getMessage());
+        }
+    }
+
+    public void decryptRSA(String cipherText, JTextArea privateKeyArea, JTextArea outputArea) {
+        if (cipherText == null || cipherText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần giải mã!");
+            return;
+        }
+        String privateKey = privateKeyArea.getText();
+        if (privateKey == null || privateKey.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng nhập Private Key!");
+            return;
+        }
+
+        try {
+            // Load private key from text area
+            rsa.loadPrivateKeyFromText(privateKey.trim());
+
+            String decrypted = rsa.decrypt(cipherText, rsa.getKeyPair());
+            outputArea.setText(decrypted);
+            JOptionPane.showMessageDialog(null, "Giải mã RSA thành công!");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(view, "Lỗi giải mã RSA: " + e.getMessage());
+        }
+    }
 }

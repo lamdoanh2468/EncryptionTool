@@ -1,6 +1,6 @@
 package controller.file;
 
-import model.file.AFileSymCipher;
+import model.cipher.file.AFileSymCipher;
 import view.file.symmetric.SymmetricPanel;
 
 import javax.crypto.BadPaddingException;
@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Base64;
 
 public class SymmetricFileController {
@@ -31,7 +32,7 @@ public class SymmetricFileController {
         this.symmetricPanel = panel;
     }
 
-    public void genKey(AFileSymCipher cipher, Integer keySize, JTextArea keyArea) throws NoSuchAlgorithmException {
+    public void genKey(AFileSymCipher cipher, Integer keySize, JTextArea keyArea) throws NoSuchAlgorithmException, NoSuchProviderException {
         fileController.currentKey = cipher.genKey(keySize);
         cipher.loadKey(fileController.currentKey);
         JOptionPane.showMessageDialog(null, "Tạo khóa thành công");
@@ -72,6 +73,10 @@ public class SymmetricFileController {
     }
 
     public void exportKey(AFileSymCipher symCipher, String mode, String padding) throws NoSuchAlgorithmException, IOException {
+        if (fileController.currentKey == null) {
+            JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu file chứa khoá");
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -105,7 +110,7 @@ public class SymmetricFileController {
 
     public void encryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException,
-            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
 
         if (fileController.currentKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -135,7 +140,7 @@ public class SymmetricFileController {
 
     public void decryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
-            NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException {
+            NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, NoSuchProviderException {
 
         if (fileController.currentKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -190,11 +195,15 @@ public class SymmetricFileController {
     }
 
     private int[] getExpectedLength(String algorithm) {
-        switch (algorithm.toUpperCase()) {
-            case "AES":
+        switch (algorithm) {
+            case "AES", "Blowfish", "Camellia":
                 return new int[]{16, 24, 32};
             case "DES":
                 return new int[]{8};
+            case "DESede":
+                return new int[]{16, 24};
+            case "RC5":
+                return new int[]{16};
             default:
                 throw new IllegalArgumentException("Không hỗ trợ thuật toán này: " + algorithm);
         }

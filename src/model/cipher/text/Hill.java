@@ -1,4 +1,4 @@
-package model.text;
+package model.cipher.text;
 
 import java.util.Random;
 

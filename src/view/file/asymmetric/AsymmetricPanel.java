@@ -3,9 +3,9 @@ package view.file.asymmetric;
 import controller.file.AsymmetricFileController;
 import controller.file.FileController;
 import controller.file.SymmetricFileController;
-import model.file.AFileAsymCipher;
-import model.file.AFileSymCipher;
-import model.file.config.AsymmetricFiletConfig;
+import model.cipher.file.AFileAsymCipher;
+import model.cipher.file.AFileSymCipher;
+import model.cipher.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
 import view.file.FilePanelUI;
 
@@ -15,6 +15,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 public class AsymmetricPanel extends JPanel {
 
@@ -60,13 +61,13 @@ public class AsymmetricPanel extends JPanel {
         });
 
         // Asym
-        symAlgoCombo = FilePanelUI.createDropdown(new String[]{"AES", "DES"});
+        symAlgoCombo = FilePanelUI.createDropdown(new String[]{"AES", "Blowfish", "Twofish", "Camellia", "DES", "DESede","RC5"});
         symPaddingCombo = FilePanelUI.createDropdown(new String[]{"PKCS5Padding", "NoPadding"});
 
         // Hybrid
         symKeySizeCombo = FilePanelUI.createIntegerDropdown(new Integer[]{128, 192, 256});
         symKeySizeCombo.setSelectedItem(256);
-        symModeCombo = FilePanelUI.createDropdown(new String[]{"ECB", "CBC", "CTR", "CFB", "OFB"});
+        symModeCombo = FilePanelUI.createDropdown(new String[]{"ECB", "CBC", "PCBC", "CFB", "OFB", "CTR", "GCM"});
 
         publicKeyArea = FilePanelUI.createKeyTextArea();
         privateKeyArea = FilePanelUI.createKeyTextArea();
@@ -115,7 +116,7 @@ public class AsymmetricPanel extends JPanel {
             try {
                 symmetricFileController.genKey(fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
                         (Integer) symKeySizeCombo.getSelectedItem(), symKeyArea);
-            } catch (NoSuchAlgorithmException ex) {
+            } catch (NoSuchAlgorithmException | NoSuchProviderException ex) {
                 throw new RuntimeException(ex);
             }
         });

@@ -1,8 +1,7 @@
-package model.file;
+package model.cipher.file;
 
 import javax.crypto.SecretKey;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.*;

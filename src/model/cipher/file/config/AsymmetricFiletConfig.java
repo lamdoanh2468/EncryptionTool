@@ -1,7 +1,7 @@
-package model.file.config;
+package model.cipher.file.config;
 
-import model.file.AFileAsymCipher;
-import model.file.AFileSymCipher;
+import model.cipher.file.AFileAsymCipher;
+import model.cipher.file.AFileSymCipher;
 
 import java.io.File;
 
