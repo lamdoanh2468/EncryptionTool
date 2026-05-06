@@ -174,7 +174,6 @@ public class TextController {
     }
 
 
-
     public void verifyHash(String algo, String text, String expectedHash) {
         if (text == null || text.trim().isEmpty()) {
             JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần kiểm tra!");
@@ -228,10 +227,10 @@ public class TextController {
         }
         return sb.toString();
     }
+
     public void toggleOutputArea(boolean enable) {
         if (view.textPanel != null && view.textPanel.outputArea != null) {
             view.textPanel.outputArea.setEditable(enable);
-            view.textPanel.outputArea.setVisible(enable);
         }
     }
 
@@ -261,7 +260,7 @@ public class TextController {
             JOptionPane.showMessageDialog(null, "Mã hóa RSA thành công!");
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Lỗi mã hóa RSA: " + e.getMessage());
+            JOptionPane.showMessageDialog(view, "Văn bản quá dài, không thể mã hoá");
         }
     }
 
@@ -288,4 +287,25 @@ public class TextController {
             JOptionPane.showMessageDialog(view, "Lỗi giải mã RSA: " + e.getMessage());
         }
     }
+
+    public void removeKeyArea(JTextArea... keyArea) {
+        for (JTextArea area : keyArea) {
+            area.setText("");
+        }
+    }
+
+    public void clearAll() {
+        if (view == null || view.textPanel == null) {
+            return;
+        }
+        if (view.textPanel.inputArea == null || view.textPanel.outputArea == null) {
+            return;
+        }
+        view.textPanel.inputArea.setText("");
+        view.textPanel.outputArea.setText("");
+        view.textPanel.updateCount();
+
+    }
+
+
 }

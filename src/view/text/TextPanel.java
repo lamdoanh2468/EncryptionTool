@@ -54,48 +54,43 @@ public class TextPanel extends JPanel {
         northPanel.add(divider, BorderLayout.SOUTH);
 
         add(northPanel, BorderLayout.NORTH);
-        // IO Row
+
         JPanel ioRow = new JPanel(new GridBagLayout());
         ioRow.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // Plain textarea
-        inputArea = MainFrame.makeTextArea("");
-        JPanel leftPanel = createLabeledArea("Văn bản gốc", inputArea);
-        leftPanel.setPreferredSize(new Dimension(0, 220));
-        leftPanel.setMinimumSize(new Dimension(0, 200));
-        // Encrypt and decryption button
-        JPanel midPanel = buildMidPanel();
-
-        // Cipher textarea
-        outputArea = MainFrame.makeTextArea("");
-        outputArea.setEditable(false);
-        outputArea.setBackground(Color.WHITE);
-        outputArea.setLineWrap(true);
-        outputArea.setWrapStyleWord(true);
-        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        outputArea.setPreferredSize(new Dimension(0, 220));
-
-        JPanel rightPanel = createLabeledArea("Kết quả", outputArea);
-        rightPanel.setPreferredSize(new Dimension(300, 220));
-        rightPanel.setMinimumSize(new Dimension(280, 200));
-
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1.0;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
+        // Input
+        inputArea = MainFrame.makeTextArea("");
+        inputArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        JPanel leftPanel = createLabeledArea("Văn bản gốc", inputArea);
+        leftPanel.setMinimumSize(new Dimension(300, 280));
+
+        // Mid buttons
+        JPanel midPanel = buildMidPanel();
+        midPanel.setPreferredSize(new Dimension(140, 160));   // ← SỬA
+        midPanel.setMaximumSize(new Dimension(140, 160));     // ← THÊM
+
+        // Output
+        outputArea = MainFrame.makeTextArea("");
+        outputArea.setEditable(false);
+        outputArea.setBackground(new Color(248, 250, 252));
+        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        outputArea.setLineWrap(true);
+        outputArea.setWrapStyleWord(true);
+        JPanel rightPanel = createLabeledArea("Kết quả", outputArea);
+        rightPanel.setMinimumSize(new Dimension(300, 280));
+
+        // Grid
+        gbc.gridx = 0; gbc.weightx = 0.45; gbc.insets = new Insets(0,0,0,0);
         ioRow.add(leftPanel, gbc);
 
-        gbc.gridx = 1;
-        gbc.weightx = 0;
-        gbc.insets = new Insets(0, 8, 0, 8);
-        ioRow.add(midPanel, gbc);
+        gbc.gridx = 1; gbc.weightx = 0; gbc.insets = new Insets(0,16,0,16);
+        ioRow.add(midPanel, gbc);                     // ← Đảm bảo có dòng này
 
-        gbc.gridx = 2;
-        gbc.weightx = 1.0;
-        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.gridx = 2; gbc.weightx = 0.45; gbc.insets = new Insets(0,0,0,0);
         ioRow.add(rightPanel, gbc);
 
         add(ioRow, BorderLayout.CENTER);
@@ -112,15 +107,20 @@ public class TextPanel extends JPanel {
         });
     }
 
-    private JPanel createLabeledArea(String inputText, JTextArea inputArea) {
-        JPanel panel = new JPanel(new BorderLayout(0, 6));
+    private JPanel createLabeledArea(String labelText, JTextArea textArea) {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
         panel.setOpaque(false);
 
-        JLabel label = new JLabel(inputText);
+        JLabel label = new JLabel(labelText);
         label.setFont(new Font("SansSerif", Font.BOLD, 14));
         label.setForeground(MainFrame.TXT_LABEL);
 
-        JScrollPane scroll = MainFrame.scrollWrap(inputArea);
+        JScrollPane scroll = MainFrame.scrollWrap(textArea);
+
+        scroll.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                new EmptyBorder(6, 8, 6, 8)
+        ));
 
         panel.add(label, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
@@ -132,6 +132,7 @@ public class TextPanel extends JPanel {
         JPanel p = new JPanel();
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setOpaque(false);
+        p.setPreferredSize(new Dimension(140, 160));
         p.setPreferredSize(new Dimension(110, 0));
         encryptBtn = createEDButton("MÃ HÓA", MainFrame.BLUE_BTN);
         encryptBtn.addActionListener(e -> {
@@ -143,10 +144,10 @@ public class TextPanel extends JPanel {
             }
             else if (type.equals("Bất đối xứng")){
                 String text = inputArea.getText();
-                textController.encryptRSA(text, selectorPanel.publicArea, outputArea);
+                textController.encryptRSA(text, selectorPanel.asymmetricPanel.publicArea, outputArea);
             }
             else {
-                String key = selectorPanel.keyArea.getText();
+                String key = selectorPanel.symmetricPanel.keyArea.getText();
                 String text = inputArea.getText();
                 String algo = (String) selectorPanel.algoCombo.getSelectedItem();
                 textController.encryptText(textController.getCipher(algo), text, key, outputArea);
@@ -162,10 +163,10 @@ public class TextPanel extends JPanel {
                 textController.verifyHash(algo, text, outputArea.getText());
             } else if (type.equals("Bất đối xứng")) {
                 String text = inputArea.getText();
-                textController.decryptRSA(text, selectorPanel.privateArea, outputArea);
+                textController.decryptRSA(text, selectorPanel.asymmetricPanel.privateArea, outputArea);
             }
             else {
-                String key = selectorPanel.keyArea.getText();
+                String key = selectorPanel.symmetricPanel.keyArea.getText();
                 String text = inputArea.getText();
                 String algo = (String) selectorPanel.algoCombo.getSelectedItem();
                 textController.decryptText(textController.getCipher(algo), text, key, outputArea);
@@ -226,7 +227,7 @@ public class TextPanel extends JPanel {
 
         clearBtn = createButton("Xóa tất cả", new Color(100, 40, 40));
         clearBtn.addActionListener(e -> {
-            clearAll();
+            textController.clearAll();
         });
 
         btnRow.add(copyBtn);
@@ -271,11 +272,6 @@ public class TextPanel extends JPanel {
         charCountLabel.setText(len + " ký tự");
     }
 
-    public void clearAll() {
-        inputArea.setText("");
-        outputArea.setText("");
-        updateCount();
-    }
 
     private void switchToHashMode() {
         isHashMode = true;
