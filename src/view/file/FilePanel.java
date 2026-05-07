@@ -2,6 +2,7 @@ package view.file;
 
 import controller.file.AsymmetricFileController;
 import controller.file.FileController;
+import controller.file.HashFileController;
 import controller.file.SymmetricFileController;
 import model.cipher.file.config.AsymmetricFiletConfig;
 import view.MainFrame;
@@ -22,20 +23,23 @@ public class FilePanel extends JPanel {
     FileController fileController;
     SymmetricFileController symmetricFileController;
     AsymmetricFileController asymmetricFileController;
+    HashFileController hashFileController;
     public FileSelectorPanel fileSelectorPanel;
 
     public FilePanel(FileController fileController) {
         this.fileController = fileController;
         this.symmetricFileController = fileController.getSymmetricController();
         this.asymmetricFileController = fileController.getAsymmetricController();
+        this.hashFileController = fileController.getHashController();
 
         setLayout(new BorderLayout(0, 16));
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(20, 16, 20, 16));
 
-        this.fileSelectorPanel = new FileSelectorPanel(fileController, symmetricFileController, asymmetricFileController);
+        this.fileSelectorPanel = new FileSelectorPanel(fileController, symmetricFileController, asymmetricFileController, hashFileController);
         fileController.setSymmetricPanel(fileSelectorPanel.symmetricPanel);
         fileController.setAsymmetricPanel(fileSelectorPanel.asymmetricPanel);
+        fileController.setHashPanel(fileSelectorPanel.hashPanel);
 
         JLabel titleLabel = new JLabel("CHỌN FILE");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 10));

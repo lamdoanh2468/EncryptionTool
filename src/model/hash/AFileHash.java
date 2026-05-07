@@ -46,9 +46,7 @@ public abstract class AFileHash implements IFileHash {
         try (InputStream fis = new FileInputStream(src);
              DigestInputStream dis = new DigestInputStream(fis, digest)) {
             byte[] buffer = new byte[8192];
-            while (dis.read(buffer) != -1) {
-                // DigestInputStream tự động cập nhật digest
-            }
+            while (dis.read(buffer) != -1) {}
             return digest.digest();
         }
     }

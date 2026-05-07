@@ -1,8 +1,11 @@
 package controller.file;
 
-import model.cipher.file.*;
+import model.cipher.file.AFileAsymCipher;
+import model.cipher.file.AFileSymCipher;
+import model.cipher.file.CipherFactory;
 import view.MainFrame;
 import view.file.asymmetric.AsymmetricPanel;
+import view.file.hash.HashFilePanel;
 import view.file.symmetric.SymmetricPanel;
 
 import javax.crypto.BadPaddingException;
@@ -17,11 +20,24 @@ import java.io.IOException;
 import java.security.*;
 
 public class FileController {
-    private final MainFrame view;
-
+    public final MainFrame view;
+    // Controllers
+    private final SymmetricFileController symmetricController;
+    private final AsymmetricFileController asymmetricController;
+    private final HashFileController hashController;
+    public SecretKey currentKey;
+    public PublicKey currentPublicKey;
+    public PrivateKey currentPrivateKey;
     // Ciphers
-    private  AFileSymCipher currentSymCipher;
+    private AFileSymCipher currentSymCipher;
     private AFileAsymCipher currentAsymCipher;
+
+    public FileController(MainFrame view) {
+        this.view = view;
+        this.symmetricController = new SymmetricFileController(this);
+        this.asymmetricController = new AsymmetricFileController(this);
+        this.hashController = new HashFileController(this);
+    }
 
     public AFileSymCipher getSymCipher(String algoName) {
         this.currentSymCipher = CipherFactory.getSymmetricCipher(algoName);
@@ -32,19 +48,6 @@ public class FileController {
         this.currentAsymCipher = CipherFactory.getAsymmetricCipher(algoName);
         return currentAsymCipher;
     }
-    // Controllers
-    private final SymmetricFileController symmetricController;
-    private final AsymmetricFileController asymmetricController;
-
-    public SecretKey currentKey;
-    public PublicKey currentPublicKey;
-    public PrivateKey currentPrivateKey;
-
-    public FileController(MainFrame view) {
-        this.view = view;
-        this.symmetricController = new SymmetricFileController(this);
-        this.asymmetricController = new AsymmetricFileController(this);
-    }
 
     public SymmetricFileController getSymmetricController() {
         return symmetricController;
@@ -52,6 +55,10 @@ public class FileController {
 
     public AsymmetricFileController getAsymmetricController() {
         return asymmetricController;
+    }
+
+    public HashFileController getHashController() {
+        return hashController;
     }
 
     public File chooseFile(JLabel filePathLabel) {
@@ -184,6 +191,9 @@ public class FileController {
     public void setAsymmetricPanel(AsymmetricPanel panel) {
         this.asymmetricController.setAsymmetricPanel(panel);
     }
+    public void setHashPanel(HashFilePanel panel){
+        this.hashController.setHashFilePanel(panel);
+    }
 
     public void updateEncryptDecryptButtons() {
         if (view.filePanel == null) return;
@@ -204,6 +214,14 @@ public class FileController {
         if (view.filePanel != null && view.filePanel.fileSelectorPanel != null) {
             view.filePanel.fileSelectorPanel.setCombosEnabled(enabled);
         }
+    }
+
+    public void showWarning(String message) {
+        JOptionPane.showMessageDialog(view, message, "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+    }
+
+    public void showInfo(String message) {
+        JOptionPane.showMessageDialog(view, message, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 
 }

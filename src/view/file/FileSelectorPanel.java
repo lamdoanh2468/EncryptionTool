@@ -2,9 +2,11 @@ package view.file;
 
 import controller.file.AsymmetricFileController;
 import controller.file.FileController;
+import controller.file.HashFileController;
 import controller.file.SymmetricFileController;
 import model.cipher.file.config.AsymmetricFiletConfig;
 import view.file.asymmetric.AsymmetricPanel;
+import view.file.hash.HashFilePanel;
 import view.file.symmetric.SymmetricPanel;
 
 import javax.swing.*;
@@ -12,8 +14,9 @@ import java.awt.*;
 import java.io.File;
 
 public class FileSelectorPanel extends JPanel {
-    private static final String[] SYMMETRIC_ALGOS = {"AES", "Blowfish", "Twofish", "Camellia", "DES", "DESede","RC5"};
+    private static final String[] SYMMETRIC_ALGOS = {"AES", "Blowfish", "Twofish", "Camellia", "DES", "DESede", "RC5"};
     private static final String[] ASYMMETRIC_ALGOS = {"RSA"};
+    private static final String[] HASH_FUNCTIONS = {"MD5", "SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"};
 
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
@@ -31,21 +34,24 @@ public class FileSelectorPanel extends JPanel {
     public final FileController fileController;
     public final SymmetricPanel symmetricPanel;
     public final AsymmetricPanel asymmetricPanel;
+    public final HashFilePanel hashPanel;
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
 
-    public FileSelectorPanel(FileController fileController, SymmetricFileController symmetricFileController, AsymmetricFileController asymmetricFileController) {
+    public FileSelectorPanel(FileController fileController, SymmetricFileController symmetricFileController,
+                             AsymmetricFileController asymmetricFileController, HashFileController hashController) {
 
         this.fileController = fileController;
 
         setLayout(new BorderLayout(0, 10));
         setOpaque(false);
 
-        typeCombo = FilePanelUI.createDropdown(new String[]{"Đối xứng", "Bất đối xứng"});
+        typeCombo = FilePanelUI.createDropdown(new String[]{"Đối xứng", "Bất đối xứng", "Hàm Băm"});
         algoCombo = FilePanelUI.createDropdown(SYMMETRIC_ALGOS);
 
         symmetricPanel = new SymmetricPanel(fileController, symmetricFileController);
         asymmetricPanel = new AsymmetricPanel(fileController, asymmetricFileController, symmetricFileController);
+        hashPanel = new HashFilePanel(fileController, hashController);
 
         modeCombo = symmetricPanel.modeCombo;
         paddingCombo = symmetricPanel.paddingCombo;
@@ -60,6 +66,7 @@ public class FileSelectorPanel extends JPanel {
         keyCardPanel.setOpaque(false);
         keyCardPanel.add(symmetricPanel, "Symmetric");
         keyCardPanel.add(asymmetricPanel, "Asymmetric");
+        keyCardPanel.add(hashPanel, "Hash");
 
         add(createTopRow(), BorderLayout.NORTH);
         add(keyCardPanel, BorderLayout.CENTER);
@@ -109,6 +116,12 @@ public class FileSelectorPanel extends JPanel {
                 algoCombo.addItem(algo);
             }
             keyCardLayout.show(keyCardPanel, "Asymmetric");
+        } else if ("Hàm Băm".equals(typeCombo.getSelectedItem())) {
+            for (String algo : HASH_FUNCTIONS) {
+                algoCombo.addItem(algo);
+            }
+            keyCardLayout.show(keyCardPanel, "Hash");
+            // Ẩn các nút Encrypt/Decrypt ở FilePanel nếu cần
         } else {
             for (String algo : SYMMETRIC_ALGOS) {
                 algoCombo.addItem(algo);
@@ -125,7 +138,10 @@ public class FileSelectorPanel extends JPanel {
 
         if (isAsymmetricSelected()) {
             asymmetricPanel.configureForAlgorithm(algo);
-        } else {
+        } else if ("Hàm Băm".equals(typeCombo.getSelectedItem())) {
+            hashPanel.configureForAlgorithm(algo);
+        }
+        else {
             symmetricPanel.configureForAlgorithm(algo);
         }
     }
