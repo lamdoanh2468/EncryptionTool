@@ -225,7 +225,7 @@ public class TextPanel extends JPanel {
             textController.copyKey(outputArea);
         });
 
-        clearBtn = createButton("Xóa tất cả", new Color(100, 40, 40));
+        clearBtn = createButton("Xóa tất cả", Color.RED);
         clearBtn.addActionListener(e -> {
             textController.clearAll();
         });

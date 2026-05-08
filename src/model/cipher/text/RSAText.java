@@ -9,7 +9,8 @@ import java.util.Base64;
 public class RSAText extends ATextCipher<KeyPair> {
 
     private static final String ALGORITHM = "RSA";
-    private static final String TRANSFORMATION = "RSA/ECB/PKCS1Padding";
+    private static final String TRANSFORMATION = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+
     private KeyPair keyPair;
     private PublicKey publicKey;
     private PrivateKey privateKey;

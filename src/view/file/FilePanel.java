@@ -19,11 +19,14 @@ public class FilePanel extends JPanel {
     public final JButton encryptFileBtn;
     public final JButton decryptFileBtn;
     public final JLabel statusLabel;
+
     public File selectedFile;
+
     FileController fileController;
     SymmetricFileController symmetricFileController;
     AsymmetricFileController asymmetricFileController;
     HashFileController hashFileController;
+
     public FileSelectorPanel fileSelectorPanel;
 
     public FilePanel(FileController fileController) {
@@ -125,7 +128,7 @@ public class FilePanel extends JPanel {
         southPanel.add(btnPanel, BorderLayout.NORTH);
 
         statusLabel = new JLabel("Vui lòng chọn file để tiếp tục");
-        statusLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        statusLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         statusLabel.setForeground(Color.RED);
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         southPanel.add(statusLabel, BorderLayout.SOUTH);
