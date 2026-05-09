@@ -40,7 +40,7 @@ public class TextPanel extends JPanel {
             if ("Hàm Băm".equals(type)) {
                 switchToHashMode();
             } else {
-                switchToNormalMode();
+                switchToCipherMode();
             }
         });
         JPanel northPanel = new JPanel(new BorderLayout(0, 0));
@@ -276,12 +276,13 @@ public class TextPanel extends JPanel {
     private void switchToHashMode() {
         isHashMode = true;
         encryptBtn.setText("BĂM VĂN BẢN");
-        decryptBtn.setText("KIỂM TRA");
+        decryptBtn.setVisible(false);
     }
 
-    private void switchToNormalMode() {
+    private void switchToCipherMode() {
         isHashMode = false;
         encryptBtn.setText("MÃ HOÁ");
         decryptBtn.setText("GIẢI MÃ");
+        decryptBtn.setVisible(true);
     }
 }

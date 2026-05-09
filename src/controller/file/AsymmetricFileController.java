@@ -206,7 +206,7 @@ public class AsymmetricFileController {
 
     public void setAsymmetricCipherInfo(AsymmetricPanel asymmetricPanel) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Chọn file chứa thông tin thuật toán");
+        fileChooser.setDialogTitle("Chọn file có tên asym_transformation.key ở thư mục lưu khoá");
         int option = fileChooser.showOpenDialog(null);
         if (option == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
@@ -215,7 +215,7 @@ public class AsymmetricFileController {
                 String[] asymParts = transformation.split("/");
                 asymmetricPanel.asymModeCombo.setSelectedItem(asymParts[1]);
                 asymmetricPanel.asymPaddingCombo.setSelectedItem(asymParts[2]);
-                JOptionPane.showMessageDialog(null, "Đã lấy xong thông tin thuật toán", "Thông Báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Đã lấy xong thông tin thuật toán bất đối xứng", "Thông Báo", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Không thể đọc thông tin thuật toán bất đối xứng", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }

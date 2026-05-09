@@ -1,7 +1,6 @@
 package view.text;
 
 import controller.text.TextController;
-import org.bouncycastle.jcajce.provider.symmetric.TEA;
 import view.MainFrame;
 import view.file.FilePanelUI;
 import view.text.asymmetric.AsymmetricTextPanel;
@@ -15,7 +14,12 @@ public class TextSelectorPanel extends JPanel {
 
     private static final String[] SYMMETRIC_ALGOS = {"Caesar", "Affine", "Vigenere", "Hill", "Thay thế", "Hoán vị"};
 
-    private static final String[] HASH_FUNCTIONS = {"MD5", "SHA-1", "SHA-256", "SHA-512", "SHA3-256"};
+    private static final String[] HASH_FUNCTIONS = {
+            "MD2", "MD5", "SHA-1",
+            "SHA-224", "SHA-256", "SHA-384", "SHA-512",
+            "SHA-512/224", "SHA-512/256",
+            "SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512"
+    };
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
 

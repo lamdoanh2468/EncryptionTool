@@ -7,13 +7,9 @@ import java.util.List;
 
 public interface IFileHash {
 
-    byte[] hash(String data) throws NoSuchAlgorithmException, NoSuchProviderException;
+    byte[] hashText(String data) throws NoSuchAlgorithmException, NoSuchProviderException;
 
     byte[] hashFile(String src) throws IOException, NoSuchAlgorithmException, NoSuchProviderException;
-
-    boolean verify(String data, byte[] expectedHash) throws NoSuchAlgorithmException, NoSuchProviderException;
-
-    boolean verifyFile(String src, byte[] expectedHash) throws IOException, NoSuchAlgorithmException, NoSuchProviderException;
 
     String getAlgorithm();
 

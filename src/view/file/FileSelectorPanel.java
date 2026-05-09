@@ -16,8 +16,12 @@ import java.io.File;
 public class FileSelectorPanel extends JPanel {
     private static final String[] SYMMETRIC_ALGOS = {"AES", "Blowfish", "Twofish", "Camellia", "DES", "DESede", "RC5"};
     private static final String[] ASYMMETRIC_ALGOS = {"RSA"};
-    private static final String[] HASH_FUNCTIONS = {"MD5", "SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"};
-
+    private static final String[] HASH_FUNCTIONS = {
+            "MD2", "MD5", "SHA-1",
+            "SHA-224", "SHA-256", "SHA-384", "SHA-512",
+            "SHA-512/224", "SHA-512/256",
+            "SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512"
+    };
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;
     public final JComboBox<String> modeCombo;

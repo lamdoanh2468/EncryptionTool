@@ -37,7 +37,7 @@ public class HashFileController {
             AFileHash hasher = getHashInstance(algo);
             byte[] fileBytes = Files.readAllBytes(file.toPath());
             String fileContent = new String(fileBytes, StandardCharsets.UTF_8);
-            byte[] hashBytes = hasher.hash(fileContent);
+            byte[] hashBytes = hasher.hashText(fileContent);
             String hexResult = bytesToHex(hashBytes);
 
             hashFilePanel.setResult(hexResult);
@@ -49,16 +49,34 @@ public class HashFileController {
     }
 
     private AFileHash getHashInstance(String algo) {
-        if (algo == null) return new SHA256();
-        return switch (algo) {
-            case "MD5" -> new MD5();
-            case "SHA-1" -> new SHA1();
-            case "SHA-224" -> new SHA224();
-            case "SHA-256" -> new SHA256();
-            case "SHA-384" -> new SHA384();
-            case "SHA-512" -> new SHA512();
+        if (algo == null || algo.isBlank()) {
+            return new SHA256();
+        }
+
+        AFileHash hashInstance = null;
+        switch (algo) {
+            // Legacy
+            case "MD2" -> hashInstance = new MD2();
+            case "MD5" -> hashInstance = new MD5();
+            case "SHA-1", "SHA1" -> hashInstance = new SHA1();
+
+            // SHA-2
+            case "SHA-224" -> hashInstance = new SHA224();
+            case "SHA-256" -> hashInstance = new SHA256();
+            case "SHA-384" -> hashInstance = new SHA384();
+            case "SHA-512" -> hashInstance = new SHA512();
+            case "SHA-512/224", "SHA512/224", "SHA512224" -> hashInstance = new SHA_512_224();
+            case "SHA-512/256", "SHA512/256", "SHA512256" -> hashInstance = new SHA_512_256();
+
+            // SHA-3 F
+            case "SHA3-224" -> hashInstance = new SHA3_224();
+            case "SHA3-256" -> hashInstance = new SHA3_256();
+            case "SHA3-384" -> hashInstance = new SHA3_384();
+            case "SHA3-512" -> hashInstance = new SHA3_512();
+
             default -> throw new IllegalArgumentException("Hàm băm không được hỗ trợ: " + algo);
         };
+        return hashInstance;
     }
 
     private String bytesToHex(byte[] bytes) {

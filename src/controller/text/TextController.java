@@ -153,7 +153,6 @@ public class TextController {
     }
 
     // HÀM BĂM
-
     public void hashText(String algo, String text, JTextArea outputArea) {
         if (text == null || text.trim().isEmpty()) {
             JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần băm!");
@@ -162,8 +161,8 @@ public class TextController {
 
         try {
             AFileHash hasher = getHashInstance(algo);
-            byte[] hashBytes = hasher.hash(text);
-            String hexResult = bytesToHex(hashBytes);
+            byte[] hashBytes = hasher.hashText(text);
+            String hexResult = hasher.bytesToHex(hashBytes);
 
             outputArea.setText(hexResult);
             JOptionPane.showMessageDialog(null, "Băm thành công (" + algo + ")");
@@ -186,8 +185,8 @@ public class TextController {
 
         try {
             AFileHash hasher = getHashInstance(algo);
-            byte[] actualHash = hasher.hash(text);
-            String actualHex = bytesToHex(actualHash);
+            byte[] actualHash = hasher.hashText(text);
+            String actualHex = hasher.bytesToHex(actualHash);
 
             boolean isMatch = actualHex.equalsIgnoreCase(expectedHash.trim());
 
@@ -207,26 +206,36 @@ public class TextController {
 
 
     private AFileHash getHashInstance(String algo) {
-        if (algo == null) return new SHA256();
-
-        return switch (algo) {
-            case "MD5" -> new MD5();
-            case "SHA-1" -> new SHA1();
-            case "SHA-224" -> new SHA224();
-            case "SHA-256" -> new SHA256();
-            case "SHA-384" -> new SHA384();
-            case "SHA-512" -> new SHA512();
-            default -> throw new IllegalStateException("Unexpected hash function: " + algo);
-        };
-    }
-
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
+        if (algo == null || algo.isBlank()) {
+            return new SHA256();
         }
-        return sb.toString();
+
+        AFileHash hashInstance = null;
+        switch (algo) {
+            // Legacy
+            case "MD2" -> hashInstance = new MD2();
+            case "MD5" -> hashInstance = new MD5();
+            case "SHA-1", "SHA1" -> hashInstance = new SHA1();
+
+            // SHA-2
+            case "SHA-224" -> hashInstance = new SHA224();
+            case "SHA-256" -> hashInstance = new SHA256();
+            case "SHA-384" -> hashInstance = new SHA384();
+            case "SHA-512" -> hashInstance = new SHA512();
+            case "SHA-512/224", "SHA512/224", "SHA512224" -> hashInstance = new SHA_512_224();
+            case "SHA-512/256", "SHA512/256", "SHA512256" -> hashInstance = new SHA_512_256();
+
+            // SHA-3 F
+            case "SHA3-224" -> hashInstance = new SHA3_224();
+            case "SHA3-256" -> hashInstance = new SHA3_256();
+            case "SHA3-384" -> hashInstance = new SHA3_384();
+            case "SHA3-512" -> hashInstance = new SHA3_512();
+
+            default -> throw new IllegalArgumentException("Hàm băm không được hỗ trợ: " + algo);
+        };
+        return hashInstance;
     }
+
 
     public void toggleOutputArea(boolean enable) {
         if (view.textPanel != null && view.textPanel.outputArea != null) {

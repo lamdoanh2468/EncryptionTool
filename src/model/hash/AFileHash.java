@@ -1,9 +1,14 @@
 package model.hash;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.util.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.List;
 
 public abstract class AFileHash implements IFileHash {
 
@@ -14,6 +19,7 @@ public abstract class AFileHash implements IFileHash {
     public AFileHash(String algorithm, String provider) {
         this.algorithm = algorithm;
         this.provider = provider;
+        this.supportedAlgorithms = List.of(algorithm);
     }
 
     @Override
@@ -35,40 +41,34 @@ public abstract class AFileHash implements IFileHash {
     }
 
     @Override
-    public byte[] hash(String data) throws NoSuchAlgorithmException, NoSuchProviderException {
+    public byte[] hashText(String data) throws NoSuchAlgorithmException, NoSuchProviderException {
         MessageDigest digest = getMessageDigest();
-        return digest.digest(data.getBytes(StandardCharsets.UTF_8));
+        byte [] hashBytes = data.getBytes(StandardCharsets.UTF_8);
+        return digest.digest(hashBytes);
     }
 
     @Override
     public byte[] hashFile(String src) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
         MessageDigest digest = getMessageDigest();
-        try (InputStream fis = new FileInputStream(src);
-             DigestInputStream dis = new DigestInputStream(fis, digest)) {
-            byte[] buffer = new byte[8192];
-            while (dis.read(buffer) != -1) {}
-            return digest.digest();
+        InputStream fis = new FileInputStream(src);
+        DigestInputStream dis = new DigestInputStream(fis, digest);
+
+        byte[] buffer = new byte[8192];
+        int read;
+        do {
+            read = dis.read(buffer);
+        } while (read != -1);
+
+        dis.close();
+        return digest.digest();
+
+    }
+    public String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte element : bytes) {
+            String hexFormat = String.format("%02x", element);
+            sb.append(hexFormat);
         }
-    }
-
-    @Override
-    public boolean verify(String data, byte[] expectedHash) throws NoSuchAlgorithmException, NoSuchProviderException {
-        byte[] actual = hash(data);
-        return MessageDigest.isEqual(actual, expectedHash);
-    }
-
-    @Override
-    public boolean verifyFile(String src, byte[] expectedHash) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
-        byte[] actual = hashFile(src);
-        return MessageDigest.isEqual(actual, expectedHash);
-    }
-
-    public String hashToHex(String data) throws NoSuchAlgorithmException, NoSuchProviderException {
-        byte[] hashBytes = hash(data);
-        StringBuilder hex = new StringBuilder();
-        for (byte b : hashBytes) {
-            hex.append(String.format("%02x", b));
-        }
-        return hex.toString();
+        return sb.toString();
     }
 }
