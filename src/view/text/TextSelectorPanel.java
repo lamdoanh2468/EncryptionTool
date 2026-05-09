@@ -18,7 +18,7 @@ public class TextSelectorPanel extends JPanel {
             "MD2", "MD5", "SHA-1",
             "SHA-224", "SHA-256", "SHA-384", "SHA-512",
             "SHA-512/224", "SHA-512/256",
-            "SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512"
+            "SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512", "BLAKE2b", "BLAKE3"
     };
     public final JComboBox<String> typeCombo;
     public final JComboBox<String> algoCombo;

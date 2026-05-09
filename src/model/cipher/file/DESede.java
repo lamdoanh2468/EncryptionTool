@@ -17,15 +17,6 @@ public class DESede extends AFileSymCipher {
         keySizes = Arrays.asList(112, 168);
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
-        // TODO Auto-generated method stub
-        DESede desede = new DESede();
-        desede.genKey(desede.keySizes.get(1));
-        desede.encryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx");
-        desede.decryptFile("C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_enc.pptx", "C:\\Users\\lamdo\\OneDrive\\Desktop\\Báo cáo Nền tảng Thời trang & Xưởng may_dec.pptx");
-
-    }
-
     @Override
     public String getAlgorithm() {
         return "DESede";

@@ -5,7 +5,6 @@
       <element id="archive" name="EncryptionTool.jar">
         <element id="module-output" name="EncryptionTool" />
       </element>
-      <element id="library" level="project" name="KotlinJavaRuntime" />
       <element id="file-copy" path="$USER_HOME$/OneDrive/Desktop/bcprov-jdk18on-1.84.jar" />
     </root>
   </artifact>

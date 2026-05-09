@@ -22,17 +22,6 @@ public class RSAFile extends AFileAsymCipher {
         return transformation.split("/")[0];
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException, IllegalBlockSizeException, BadPaddingException {
-
-        RSAFile fileRSAFile = new RSAFile();
-        fileRSAFile.genKeyPair("RSA", 2048, "C:\\Users\\lamdo\\Desktop");
-        fileRSAFile.genSymKey("AES", 128);
-
-        fileRSAFile.encryptFile("C:\\Users\\lamdo\\Desktop\\1.pdf", "C:\\Users\\lamdo\\Desktop\\2.pdf");
-
-        fileRSAFile.decryptFile("C:\\Users\\lamdo\\Desktop\\2.pdf", "C:\\Users\\lamdo\\Desktop\\3.pdf");
-    }
-
     public void genSymKey(String algorithm, int keySize) throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm);
         keyGenerator.init(keySize);

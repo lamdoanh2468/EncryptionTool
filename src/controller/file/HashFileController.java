@@ -68,11 +68,15 @@ public class HashFileController {
             case "SHA-512/224", "SHA512/224", "SHA512224" -> hashInstance = new SHA_512_224();
             case "SHA-512/256", "SHA512/256", "SHA512256" -> hashInstance = new SHA_512_256();
 
-            // SHA-3 F
+            // SHA-3
             case "SHA3-224" -> hashInstance = new SHA3_224();
             case "SHA3-256" -> hashInstance = new SHA3_256();
             case "SHA3-384" -> hashInstance = new SHA3_384();
             case "SHA3-512" -> hashInstance = new SHA3_512();
+
+            // BLAKE
+            case "BLAKE2b" -> hashInstance = new BLAKE2b();
+            case "BLAKE3" -> hashInstance = new BLAKE3();
 
             default -> throw new IllegalArgumentException("Hàm băm không được hỗ trợ: " + algo);
         };

@@ -1,320 +1,87 @@
 package controller.text;
 
 import model.cipher.text.*;
-import model.hash.*;
 import view.MainFrame;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.io.*;
 
 public class TextController {
     private final MainFrame view;
 
-    // Text symmetric cipher models
-    private final Caesar caesar = new Caesar();
-    private final Affine affine = new Affine();
-    private final Vigenere vigenere = new Vigenere();
-    private final Hill hill = new Hill();
-    private final Substitution substitution = new Substitution();
-    private final Permutation permutation = new Permutation();
-
-    // Text asymmetric cipher models
-    private final RSAText rsa = new RSAText();
+    // Controllers
+    private final SymmetricTextController symmetricController;
+    private final AsymmetricTextController asymmetricController;
+    private final HashController hashController;
 
     public TextController(MainFrame view) {
         this.view = view;
+        this.symmetricController = new SymmetricTextController(view);
+        this.asymmetricController = new AsymmetricTextController(view);
+        this.hashController = new HashController(view);
     }
 
+    // Symmetric
     public void importKey(JTextArea keyArea) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Nhập khóa từ đường dẫn");
-        int option = fileChooser.showOpenDialog(view);
-
-        if (option == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-
-            if (!selectedFile.getName().toLowerCase().endsWith(".txt")) {
-                JOptionPane.showMessageDialog(null, "File không đúng định dạng .");
-                return;
-            }
-
-            try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile))) {
-                StringBuilder builder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-                keyArea.setText(builder.toString());
-                JOptionPane.showMessageDialog(null, "Tải khóa thành công");
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null, "Lỗi khi nhập khóa");
-            }
-        }
-
+        symmetricController.importKey(keyArea);
     }
 
     public void exportKey(JTextArea keyArea, String ext) {
-        if (keyArea.getText() == null || keyArea.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(view, " Người dùng chưa tạo khóa");
-            return;
-        }
-
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save as");
-
-        int userSelection = fileChooser.showSaveDialog(view);
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            if (!file.getName().toLowerCase().endsWith(ext)) {
-                file = new File(file.getPath() + "." + ext);
-            }
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(keyArea.getText());
-                JOptionPane.showMessageDialog(null, "Lưu khóa vào file thành công");
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null, "Lỗi khi xuất khóa");
-            }
-        }
-    }
-
-    public <K> void generateKey(ATextCipher<K> cipher, JTextArea keyArea) {
-        K key = cipher.genKey();
-        cipher.loadKey(key);
-        keyArea.setText(cipher.getKey());
-    }
-
-    public <K> void encryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea outputArea) {
-        if (keyText == null || keyText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Chưa có khóa, vui lòng tạo khóa");
-            return;
-        }
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản!");
-            return;
-        }
-        try {
-            K key = cipher.parseKey(keyText.trim());
-            if (key == null) {
-                JOptionPane.showMessageDialog(view, "Key không hợp lệ! Vui lòng tạo lại key", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String cipherText = cipher.encrypt(text, key);
-            JOptionPane.showMessageDialog(null, "Mã hóa thành công");
-            outputArea.setText(cipherText);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Lỗi mã hóa, vui lòng tạo lại khóa và thử lại");
-        }
-    }
-
-    public <K> void decryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea inputArea) {
-        if (keyText == null || keyText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Chưa có khóa, vui lòng tạo hoặc import khóa", "Lỗi", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản!");
-            return;
-        }
-        try {
-            K key = cipher.parseKey(keyText.trim());
-            if (key == null) {
-                JOptionPane.showMessageDialog(view, "Key không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String plainText = cipher.decrypt(text, key);
-            JOptionPane.showMessageDialog(null, "Giải mã thành công");
-
-            inputArea.setText(plainText);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Lỗi giải mã: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        symmetricController.exportKey(keyArea, ext);
     }
 
     public void copyKey(JTextArea keyArea) {
-        Toolkit.getDefaultToolkit().getSystemClipboard()
-                .setContents(new StringSelection(keyArea.getText()), null);
-        JOptionPane.showMessageDialog(null, "Sao chép thành công");
-    }
-
-    public ATextCipher<?> getCipher(String algoName) {
-        if (algoName == null) return null;
-        return switch (algoName) {
-            case "Caesar" -> caesar;
-            case "Affine" -> affine;
-            case "Vigenere" -> vigenere;
-            case "Thay thế" -> substitution;
-            case "Hoán vị" -> permutation;
-            case "Hill" -> hill;
-            case "RSA" -> rsa;
-            default -> null;
-        };
-    }
-
-    // HÀM BĂM
-    public void hashText(String algo, String text, JTextArea outputArea) {
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần băm!");
-            return;
-        }
-
-        try {
-            AFileHash hasher = getHashInstance(algo);
-            byte[] hashBytes = hasher.hashText(text);
-            String hexResult = hasher.bytesToHex(hashBytes);
-
-            outputArea.setText(hexResult);
-            JOptionPane.showMessageDialog(null, "Băm thành công (" + algo + ")");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Lỗi khi băm: " + e.getMessage());
-        }
-    }
-
-
-    public void verifyHash(String algo, String text, String expectedHash) {
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần kiểm tra!");
-            return;
-        }
-        if (expectedHash == null || expectedHash.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập hàm băm cần kiểm tra!");
-            return;
-        }
-
-        try {
-            AFileHash hasher = getHashInstance(algo);
-            byte[] actualHash = hasher.hashText(text);
-            String actualHex = hasher.bytesToHex(actualHash);
-
-            boolean isMatch = actualHex.equalsIgnoreCase(expectedHash.trim());
-
-            if (isMatch) {
-                JOptionPane.showMessageDialog(null, "Giá trị băm khớp với văn bản gốc");
-            } else {
-                JOptionPane.showMessageDialog(null,
-                        "Giá trị băm KHÔNG KHỚP!\n" +
-                                "Hash bạn nhập : " + expectedHash + "\n" +
-                                "Hash tính được: " + actualHex);
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Lỗi khi kiểm tra hash: " + e.getMessage());
-        }
-    }
-
-
-    private AFileHash getHashInstance(String algo) {
-        if (algo == null || algo.isBlank()) {
-            return new SHA256();
-        }
-
-        AFileHash hashInstance = null;
-        switch (algo) {
-            // Legacy
-            case "MD2" -> hashInstance = new MD2();
-            case "MD5" -> hashInstance = new MD5();
-            case "SHA-1", "SHA1" -> hashInstance = new SHA1();
-
-            // SHA-2
-            case "SHA-224" -> hashInstance = new SHA224();
-            case "SHA-256" -> hashInstance = new SHA256();
-            case "SHA-384" -> hashInstance = new SHA384();
-            case "SHA-512" -> hashInstance = new SHA512();
-            case "SHA-512/224", "SHA512/224", "SHA512224" -> hashInstance = new SHA_512_224();
-            case "SHA-512/256", "SHA512/256", "SHA512256" -> hashInstance = new SHA_512_256();
-
-            // SHA-3 F
-            case "SHA3-224" -> hashInstance = new SHA3_224();
-            case "SHA3-256" -> hashInstance = new SHA3_256();
-            case "SHA3-384" -> hashInstance = new SHA3_384();
-            case "SHA3-512" -> hashInstance = new SHA3_512();
-
-            default -> throw new IllegalArgumentException("Hàm băm không được hỗ trợ: " + algo);
-        };
-        return hashInstance;
-    }
-
-
-    public void toggleOutputArea(boolean enable) {
-        if (view.textPanel != null && view.textPanel.outputArea != null) {
-            view.textPanel.outputArea.setEditable(enable);
-        }
-    }
-
-    public void genKeyPair(JTextArea publicArea, JTextArea privateArea) {
-        rsa.genKey();
-        publicArea.setText(rsa.getPublicKeyText());
-        privateArea.setText(rsa.getPrivateKeyText());
-    }
-
-    // Handling RSA Text Encryption and Decryption
-    public void encryptRSA(String plainText, JTextArea publicKeyArea, JTextArea outputArea) {
-        if (plainText == null || plainText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần mã hóa!");
-            return;
-        }
-        if (publicKeyArea.getText() == null || publicKeyArea.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập hoặc tạo Public Key!");
-            return;
-        }
-
-        try {
-            // Load public key from text area
-            rsa.loadPublicKeyFromText(publicKeyArea.getText().trim());
-
-            String encrypted = rsa.encrypt(plainText, rsa.getKeyPair());
-            outputArea.setText(encrypted);
-            JOptionPane.showMessageDialog(null, "Mã hóa RSA thành công!");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Văn bản quá dài, không thể mã hoá");
-        }
-    }
-
-    public void decryptRSA(String cipherText, JTextArea privateKeyArea, JTextArea outputArea) {
-        if (cipherText == null || cipherText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản cần giải mã!");
-            return;
-        }
-        String privateKey = privateKeyArea.getText();
-        if (privateKey == null || privateKey.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập Private Key!");
-            return;
-        }
-
-        try {
-            // Load private key from text area
-            rsa.loadPrivateKeyFromText(privateKey.trim());
-
-            String decrypted = rsa.decrypt(cipherText, rsa.getKeyPair());
-            outputArea.setText(decrypted);
-            JOptionPane.showMessageDialog(null, "Giải mã RSA thành công!");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Lỗi giải mã RSA: " + e.getMessage());
-        }
+        symmetricController.copyKey(keyArea);
     }
 
     public void removeKeyArea(JTextArea... keyArea) {
-        for (JTextArea area : keyArea) {
-            area.setText("");
-        }
+        symmetricController.removeKeyArea(keyArea);
     }
 
     public void clearAll() {
-        if (view == null || view.textPanel == null) {
-            return;
-        }
-        if (view.textPanel.inputArea == null || view.textPanel.outputArea == null) {
-            return;
-        }
-        view.textPanel.inputArea.setText("");
-        view.textPanel.outputArea.setText("");
-        view.textPanel.updateCount();
-
+        symmetricController.clearAll();
     }
 
+    public void toggleOutputArea(boolean enable) {
+        symmetricController.toggleOutputArea(enable);
+    }
 
+    public <K> void generateKey(ATextCipher<K> cipher, JTextArea keyArea) {
+        symmetricController.generateKey(cipher, keyArea);
+    }
+
+    public <K> void encryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea outputArea) {
+        symmetricController.encryptText(cipher, text, keyText, outputArea);
+    }
+
+    public <K> void decryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea inputArea) {
+        symmetricController.decryptText(cipher, text, keyText, inputArea);
+    }
+
+    public ATextCipher<?> getCipher(String algoName) {
+        return symmetricController.getCipher(algoName);
+    }
+
+    // Asymmetric
+    public void genKeyPair(JTextArea publicArea, JTextArea privateArea) {
+        asymmetricController.genKeyPair(publicArea, privateArea);
+    }
+
+    public void encryptRSA(String plainText, JTextArea publicKeyArea, JTextArea outputArea) {
+        asymmetricController.encryptRSA(plainText, publicKeyArea, outputArea);
+    }
+
+    public void decryptRSA(String cipherText, JTextArea privateKeyArea, JTextArea outputArea) {
+        asymmetricController.decryptRSA(cipherText, privateKeyArea, outputArea);
+    }
+
+    // Hash function
+    public void hashText(String algo, String text, JTextArea outputArea) {
+        hashController.hashText(algo, text, outputArea);
+    }
+
+    public void verifyHash(String algo, String text, String expectedHash) {
+        hashController.verifyHash(algo, text, expectedHash);
+    }
 }
