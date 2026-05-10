@@ -8,111 +8,172 @@ import java.util.Base64;
 
 public class RSAText extends ATextCipher<KeyPair> {
 
-    private static final String ALGORITHM = "RSA";
-    private static final String TRANSFORMATION = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+    private static final String RSA_TYPE = "RSA";
+    private static final String RSA_TRANSFORM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 
-    private KeyPair keyPair;
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
+    private KeyPair currentKeys;
+
+    private PublicKey pubKey;
+    private PrivateKey priKey;
 
     public KeyPair getKeyPair() {
-        return keyPair;
+        return currentKeys;
     }
 
     public PublicKey getPublicKey() {
-        return publicKey;
+        return pubKey;
     }
 
     public PrivateKey getPrivateKey() {
-        return privateKey;
+        return priKey;
     }
 
     public String getPublicKeyText() {
-        byte[] publicKeyBytes = publicKey.getEncoded();
-        return Base64.getEncoder().encodeToString(publicKeyBytes);
+
+        if (pubKey == null) {
+            return "";
+        }
+
+        byte[] bytes = pubKey.getEncoded();
+
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     public String getPrivateKeyText() {
-        byte[] privateKeyBytes = privateKey.getEncoded();
-        return Base64.getEncoder().encodeToString(privateKeyBytes);
+
+        if (priKey == null) {
+            return "";
+        }
+
+        byte[] bytes = priKey.getEncoded();
+
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     @Override
     public KeyPair genKey() {
+
         try {
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance(ALGORITHM);
-            keyGen.initialize(2048);
-            keyPair = keyGen.generateKeyPair();
-            publicKey = keyPair.getPublic();
-            privateKey = keyPair.getPrivate();
-            return keyPair;
+
+            KeyPairGenerator generator = KeyPairGenerator.getInstance(RSA_TYPE);
+
+            // 2048 is enough for normal use
+            generator.initialize(2048);
+
+            currentKeys = generator.generateKeyPair();
+
+            pubKey = currentKeys.getPublic();
+            priKey = currentKeys.getPrivate();
+
+            return currentKeys;
+
         } catch (NoSuchAlgorithmException e) {
+
             throw new RuntimeException("Không hỗ trợ thuật toán RSA", e);
         }
     }
 
     @Override
     public void loadKey(KeyPair key) {
-        this.keyPair = key;
-        this.publicKey = key.getPublic();
-        this.privateKey = key.getPrivate();
+
+        if (key == null) {
+            return;
+        }
+
+        this.currentKeys = key;
+        this.pubKey = key.getPublic();
+        this.priKey = key.getPrivate();
     }
 
     @Override
     public String getKey() {
-        if (keyPair == null) return "";
-        return Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
+
+        if (currentKeys == null) {
+            return "";
+        }
+        return Base64.getEncoder().encodeToString(currentKeys.getPrivate().getEncoded());
     }
 
     @Override
     public KeyPair parseKey(String keyText) {
 
-        return keyPair;
+        return currentKeys;
     }
 
     @Override
     public String encrypt(String plainText, KeyPair key) {
+
         try {
 
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(Cipher.ENCRYPT_MODE, key.getPublic());
-            byte[] encrypted = cipher.doFinal(plainText.getBytes());
-            return Base64.getEncoder().encodeToString(encrypted);
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi mã hóa RSA: " + e.getMessage(), e);
+            Cipher rsaCipher = Cipher.getInstance(RSA_TRANSFORM);
+
+            rsaCipher.init(Cipher.ENCRYPT_MODE, key.getPublic());
+
+            byte[] encryptedBytes = rsaCipher.doFinal(plainText.getBytes());
+
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+
+        } catch (Exception ex) {
+
+            throw new RuntimeException("Lỗi mã hóa RSA: " + ex.getMessage(), ex);
         }
     }
 
     @Override
     public String decrypt(String cipherText, KeyPair key) {
+
         try {
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(Cipher.DECRYPT_MODE, key.getPrivate());
-            byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(cipherText));
-            return new String(decrypted);
+
+            Cipher rsaCipher = Cipher.getInstance(RSA_TRANSFORM);
+
+            rsaCipher.init(Cipher.DECRYPT_MODE, key.getPrivate());
+
+            byte[] decodedBytes = Base64.getDecoder().decode(cipherText);
+
+            byte[] decryptedData = rsaCipher.doFinal(decodedBytes);
+
+            return new String(decryptedData);
+
         } catch (Exception e) {
+
             throw new RuntimeException("Lỗi giải mã RSA: " + e.getMessage(), e);
         }
     }
 
     public void loadPublicKeyFromText(String base64PublicKey) {
+
         try {
-            byte[] keyBytes = Base64.getDecoder().decode(base64PublicKey.trim());
-            X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
-            this.publicKey = keyFactory.generatePublic(spec);
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi load Public Key: " + e.getMessage(), e);
+
+            String cleanedKey = base64PublicKey.trim();
+
+            byte[] rawBytes = Base64.getDecoder().decode(cleanedKey);
+
+            X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(rawBytes);
+
+            KeyFactory factory = KeyFactory.getInstance(RSA_TYPE);
+
+            this.pubKey = factory.generatePublic(publicSpec);
+
+        } catch (Exception ex) {
+
+            throw new RuntimeException("Lỗi load Public Key: " + ex.getMessage(), ex);
         }
     }
 
     public void loadPrivateKeyFromText(String base64PrivateKey) {
+
         try {
-            byte[] keyBytes = Base64.getDecoder().decode(base64PrivateKey.trim());
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
-            this.privateKey = keyFactory.generatePrivate(spec);
+
+            byte[] rawBytes = Base64.getDecoder().decode(base64PrivateKey.trim());
+
+            PKCS8EncodedKeySpec privateSpec = new PKCS8EncodedKeySpec(rawBytes);
+
+            KeyFactory factory = KeyFactory.getInstance(RSA_TYPE);
+
+            this.priKey = factory.generatePrivate(privateSpec);
+
         } catch (Exception e) {
+
             throw new RuntimeException("Lỗi load Private Key: " + e.getMessage(), e);
         }
     }

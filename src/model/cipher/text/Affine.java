@@ -3,157 +3,186 @@ package model.cipher.text;
 import java.util.Random;
 
 public class Affine extends ATextCipher<int[]> {
-    private static final int ENG_SIZE = ENG_LOWER.length();
-    private static final int VN_SIZE = VN_ALPHABET_LOWER.length();  // 92
 
-    private int[] currentKey;
+    private static final int ENG_LENGTH = ENG_LOWER.length();
+    private static final int VN_LENGTH = VN_ALPHABET_LOWER.length();
 
-    // ==================== TEST ====================
-    public static void main(String[] args) {
-        Affine affine = new Affine();
-        int[] key = affine.genKey();
-
-        String plaintext = "Anh nhớ em rất nhiều! I love you. ❤️";
-
-        String cipher = affine.encrypt(plaintext, key);
-        String decrypted = affine.decrypt(cipher, key);
-
-        System.out.println("Plaintext : " + plaintext);
-        System.out.println("Key       : a = " + key[0] + ", b = " + key[1]);
-        System.out.println("Ciphertext: " + cipher);
-        System.out.println("Decrypted : " + decrypted);
-    }
+    private int[] savedKey;
 
     @Override
     public int[] genKey() {
-        Random rand = new Random();
-        int a = 0;
-        while (gcd(a, VN_SIZE) != 1 || gcd(a, ENG_SIZE) != 1) {
-            a = rand.nextInt(VN_SIZE - 1) + 1;
-        }
-        int b = rand.nextInt(VN_SIZE);
-        currentKey = new int[]{a, b};
-        return currentKey;
-    }
 
-    @Override
-    public void loadKey(int[] key) {
-        this.currentKey = key;
+        Random rd = new Random();
+
+        int a = 0;
+
+        while (gcd(a, VN_LENGTH) != 1 || gcd(a, ENG_LENGTH) != 1) {
+
+            a = rd.nextInt(VN_LENGTH - 1) + 1;
+        }
+
+        int bValue = rd.nextInt(VN_LENGTH);
+
+        savedKey = new int[]{a, bValue};
+
+        return savedKey;
     }
 
     @Override
     public String getKey() {
-        if (currentKey == null) return "Khóa Affine hiện không có";
-        return "a = " + currentKey[0] + ", b = " + currentKey[1];
+
+        if (savedKey == null) {
+            return "Khóa Affine hiện không có";
+        }
+
+        return "a = " + savedKey[0] + ", b = " + savedKey[1];
     }
 
     @Override
     public int[] parseKey(String keyString) {
-        if (keyString == null || keyString.isEmpty()) {
+
+        if (keyString == null || keyString.trim().isEmpty()) {
             throw new IllegalArgumentException("Không có khóa");
         }
+
         try {
-            String[] parts = keyString.split(",");
-            int a = Integer.parseInt(parts[0].split("=")[1].trim());
-            int b = Integer.parseInt(parts[1].split("=")[1].trim());
+
+            String[] splitData = keyString.split(",");
+
+            int a = Integer.parseInt(splitData[0].split("=")[1].trim());
+
+            int b = Integer.parseInt(splitData[1].split("=")[1].trim());
+
             return new int[]{a, b};
 
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return null;
         }
     }
 
     public int gcd(int a, int b) {
+
+        // standard Euclid algo
         while (b != 0) {
-            int t = b;
+
+            int temp = b;
+
             b = a % b;
-            a = t;
+
+            a = temp;
         }
+
         return a;
     }
 
     public int modInverse(int a, int n) {
-        for (int x = 0; x < n; x++) {
-            if ((a * x) % n == 1) {
-                return x;
+
+        for (int i = 0; i < n; i++) {
+            if ((a * i) % n == 1) {
+                return i;
             }
         }
+
         return -1;
     }
 
     @Override
     public String encrypt(String text, int[] key) {
-        if (text == null) text = "";
+
+        if (text == null) {
+            text = "";
+        }
 
         int a = key[0];
         int b = key[1];
-        boolean hasVNChar = hasVietnamese(text);
 
-        String lower = hasVNChar ? VN_ALPHABET_LOWER : ENG_LOWER;
-        String upper = hasVNChar ? VN_ALPHABET_UPPER : ENG_UPPER;
-        int n = hasVietnamese(text) ? VN_SIZE : ENG_SIZE;
+        boolean vietnameseDetected = hasVietnamese(text);
 
-        if (gcd(a, n) != 1) {
+        String lowerCaseAlphabet = vietnameseDetected ? VN_ALPHABET_LOWER : ENG_LOWER;
+
+        String upperCaseAlphabet = vietnameseDetected ? VN_ALPHABET_UPPER : ENG_UPPER;
+
+        int alphabetSize = vietnameseDetected ? VN_LENGTH : ENG_LENGTH;
+
+        if (gcd(a, alphabetSize) != 1) {
+
             return "Invalid key";
         }
-        StringBuilder result = new StringBuilder();
 
-        for (char ch : text.toCharArray()) {
-            int index = lower.indexOf(ch);
-            if (index != -1) { // Check if it has element
-                // lowercase
-                int newIdx = (a * index + b) % n;
-                result.append(lower.charAt(newIdx));
+        StringBuilder encryptedText = new StringBuilder();
+
+        for (char currentChar : text.toCharArray()) {
+            int foundIndex = lowerCaseAlphabet.indexOf(currentChar);
+            if (foundIndex != -1) {
+                // lowercase case
+                int encryptedIndex = ((a * foundIndex) + b) % alphabetSize;
+                encryptedText.append(lowerCaseAlphabet.charAt(encryptedIndex));
+
             } else {
-                index = upper.indexOf(ch);
-                if (index != -1) {
-                    // uppercase
-                    int newIdx = (a * index + b) % n;
-                    result.append(upper.charAt(newIdx));
+                foundIndex = upperCaseAlphabet.indexOf(currentChar);
+                if (foundIndex != -1) {
+                    // uppercase handling
+                    int encryptedIndex = ((a * foundIndex) + b) % alphabetSize;
+                    encryptedText.append(upperCaseAlphabet.charAt(encryptedIndex));
+
                 } else {
-                    result.append(ch);
+                    encryptedText.append(currentChar);
                 }
             }
         }
-        return result.toString();
-    }
 
+        return encryptedText.toString();
+    }
 
     @Override
     public String decrypt(String text, int[] key) {
-        if (text == null) text = "";
+
+        if (text == null) {
+            text = "";
+        }
 
         int a = key[0];
         int b = key[1];
-        boolean hasVNChar = hasVietnamese(text);
 
-        String lower = hasVNChar ? VN_ALPHABET_LOWER : ENG_LOWER;
-        String upper = hasVNChar ? VN_ALPHABET_UPPER : ENG_UPPER;
-        int n = hasVNChar ? VN_SIZE : ENG_SIZE;
+        boolean containsVN = hasVietnamese(text);
 
-        if (gcd(a, n) != 1) {
+        String lowerAlpha = containsVN ? VN_ALPHABET_LOWER : ENG_LOWER;
+
+        String upperAlpha = containsVN ? VN_ALPHABET_UPPER : ENG_UPPER;
+
+        int modulo = containsVN ? VN_LENGTH : ENG_LENGTH;
+
+        if (gcd(a, modulo) != 1) {
+
             return "Invalid key";
         }
-        StringBuilder result = new StringBuilder();
-        int a_1 = modInverse(a, n);
-        for (char ch : text.toCharArray()) {
-            int index = lower.indexOf(ch);
-            if (index != -1) {
-                // chữ thường
-                int newIdx = (a_1 * ((index - b + n) % n)) % n;
-                result.append(lower.charAt(newIdx));
+
+        StringBuilder decrypted = new StringBuilder();
+
+        int inverseA = modInverse(a, modulo);
+
+        for (char charElement : text.toCharArray()) {
+
+            int idx = lowerAlpha.indexOf(charElement);
+
+            if (idx != -1) {
+                // lowercase decrypt
+                int decodedIndex = (inverseA * ((idx - b + modulo) % modulo)) % modulo;
+                decrypted.append(lowerAlpha.charAt(decodedIndex));
+
             } else {
-                index = upper.indexOf(ch);
-                if (index != -1) {
-                    // chữ hoa
-                    int newIdx = (a_1 * ((index - b + n) % n)) % n;
-                    result.append(upper.charAt(newIdx));
+                idx = upperAlpha.indexOf(charElement);
+                if (idx != -1) {
+                    // uppercase decrypt
+                    int decodedIndex = (inverseA * ((idx - b + modulo) % modulo)) % modulo;
+                    decrypted.append(upperAlpha.charAt(decodedIndex));
                 } else {
-                    result.append(ch);
+                    decrypted.append(charElement);
                 }
             }
         }
-        return result.toString();
+
+        return decrypted.toString();
     }
 
 

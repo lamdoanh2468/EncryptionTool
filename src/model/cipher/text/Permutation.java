@@ -1,27 +1,27 @@
 package model.cipher.text;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import java.util.*;
 public class Permutation extends ATextCipher<int[]> {
-
     private int[] currentKey;
 
     @Override
     public int[] genKey() {
-        int keyLength = (int) (Math.random() * 5) + 4;
-        List<Integer> indices = new ArrayList<>();
-        for (int i = 0; i < keyLength; i++) {
-            indices.add(i);
+        // random length between 4 and 8
+        int randomLength = (int) (Math.random() * 5) + 4;
+        List<Integer> positions = new ArrayList<>();
+
+        for (int i = 0; i < randomLength; i++) {
+
+            positions.add(i);
         }
 
-        Collections.shuffle(indices);
+        // Shuffle position
+        Collections.shuffle(positions);
 
-        currentKey = new int[keyLength];
-        for (int i = 0; i < keyLength; i++) {
-            currentKey[i] = indices.get(i);
+        currentKey = new int[randomLength];
+        for (int i = 0; i < randomLength; i++) {
+            currentKey[i] = positions.get(i);
         }
+
         return currentKey;
     }
 
@@ -32,103 +32,115 @@ public class Permutation extends ATextCipher<int[]> {
 
     @Override
     public String getKey() {
-        if (currentKey == null) return "";
+        if (currentKey == null) {
+            return "";
+        }
+        StringBuilder keyBuilder = new StringBuilder();
 
-        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < currentKey.length; i++) {
-            sb.append(currentKey[i]);
+            keyBuilder.append(currentKey[i]);
             if (i < currentKey.length - 1) {
-                sb.append(" ");
+                keyBuilder.append(" ");
             }
         }
-        return sb.toString();
+        return keyBuilder.toString();
     }
 
     @Override
     public int[] parseKey(String keyString) {
+
         if (keyString == null || keyString.trim().isEmpty()) {
             throw new IllegalArgumentException("Khóa hiện đang trống");
         }
 
         try {
+            String[] separated = keyString.trim().split("\\s+");
+            int[] parsedKey = new int[separated.length];
 
-            String[] parts = keyString.trim().split("\\s+");
-            int[] key = new int[parts.length];
-
-            for (int i = 0; i < parts.length; i++) {
-                key[i] = Integer.parseInt(parts[i]);
+            for (int i = 0; i < separated.length; i++) {
+                parsedKey[i] = Integer.parseInt(separated[i]);
             }
+            return parsedKey;
 
-            return key;
-
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return null;
         }
     }
 
-    // CREATE PADDING
-    private String pad(String text, int block) {
-        if (text == null) text = "";
-        StringBuilder sb = new StringBuilder(text);
-        int remainder = text.length() % block;
-        if (remainder == 0) {
+    // Padding
+    private String pad(String text, int blockSize) {
+
+        if (text == null) {
+            text = "";
+        }
+        StringBuilder paddedText = new StringBuilder(text);
+        int remain = text.length() % blockSize;
+
+        if (remain == 0) {
             return text;
         }
-        int pad = block - remainder;
-        sb.append("X".repeat(Math.max(0, pad)));
-        return sb.toString();
+
+        int neededPadding = blockSize - remain;
+        paddedText.append("_".repeat(Math.max(0, neededPadding)));
+        return paddedText.toString();
     }
 
-    // === ENCRYPTION ===
+    // Encrypt
     @Override
     public String encrypt(String text, int[] key) {
+
         if (text == null || key == null || key.length == 0) {
             return "";
         }
 
-        String padded = pad(text, key.length);
-        return permute(padded, key);
+        String paddedInput = pad(text, key.length);
+        return permute(paddedInput, key);
     }
 
     private String permute(String text, int[] key) {
-        char[] cipher = new char[text.length()];
-        char[] chars = text.toCharArray();
 
-        for (int i = 0; i < chars.length; i += key.length) {
+        char[] encryptedChars = new char[text.length()];
+        char[] originalChars = text.toCharArray();
+
+        for (int blockStart = 0; blockStart < originalChars.length; blockStart += key.length) {
             for (int j = 0; j < key.length; j++) {
-                int index = key[j] + i;
-                if (index < chars.length) {
-                    cipher[index] = chars[i + j];
+                int shiftedIndex = key[j] + blockStart;
+                if (shiftedIndex < originalChars.length) {
+                    encryptedChars[shiftedIndex] = originalChars[blockStart + j];
                 }
             }
         }
-        return String.valueOf(cipher);
+        return String.valueOf(encryptedChars);
     }
 
-    // === DECRYPTION ===
+    // Decrypt
     @Override
     public String decrypt(String text, int[] key) {
+
         if (text == null || key == null || key.length == 0) {
             return "";
         }
 
-        String decrypted = inversePermute(text, key);
-        //Remove padding
-        return decrypted.replaceAll("X+$", "");
+        String plainText = inversePermute(text, key);
+        return plainText.replaceAll("_+$", "");
     }
 
     private String inversePermute(String text, int[] key) {
-        char[] plain = new char[text.length()];
-        char[] chars = text.toCharArray();
 
-        for (int i = 0; i < chars.length; i += key.length) {
-            for (int j = 0; j < key.length && i + j < chars.length; j++) {
-                int index = key[j] + i;
-                if (index < chars.length) {
-                    plain[i + j] = chars[index];
+        char[] plainChars = new char[text.length()];
+        char[] encryptedInput = text.toCharArray();
+
+        for (int start = 0; start < encryptedInput.length; start += key.length) {
+            for (int j = 0; j < key.length && start + j < encryptedInput.length; j++) {
+
+                int mappedIndex = key[j] + start;
+                if (mappedIndex < encryptedInput.length) {
+                    plainChars[start + j] = encryptedInput[mappedIndex];
                 }
             }
         }
-        return new String(plain);
+        return new String(plainChars);
     }
+
+
 }

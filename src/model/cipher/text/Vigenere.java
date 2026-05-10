@@ -1,189 +1,266 @@
 package model.cipher.text;
 
 public class Vigenere extends ATextCipher<String> {
+    private static final int VN_SIZE = VN_ALPHABET_LOWER.length();
 
-    private static final int VN_ALPHABET_SIZE = VN_ALPHABET_LOWER.length();
-
-    private String currentKey;
+    private String savedKey;
 
     @Override
     public String genKey() {
-        StringBuilder sb = new StringBuilder();
+
+        StringBuilder randomKey = new StringBuilder();
+
         for (int i = 0; i < 6; i++) {
-            sb.append((char) ('A' + (int) (Math.random() * 26)));
+
+            char generated = (char) ('A' + (int) (Math.random() * 26));
+            randomKey.append(generated);
         }
-        currentKey = sb.toString();
-        return currentKey;
+
+        savedKey = randomKey.toString();
+
+        return savedKey;
     }
 
     @Override
     public void loadKey(String key) {
-        this.currentKey = key;
+
+        this.savedKey = key;
     }
 
     @Override
     public String getKey() {
-        return currentKey;
+
+        return savedKey;
     }
 
     @Override
     public String parseKey(String keyString) {
-        return this.currentKey;
+        return this.savedKey;
     }
 
-    // === ENCRYPTION ===
+    // Encrypt
     @Override
     public String encrypt(String text, String key) {
+
         if (key == null || key.isEmpty()) {
             throw new IllegalArgumentException("Key cannot be null or empty");
         }
 
+        // remove weird chars from key
         String cleanedKey = key.replaceAll("[^A-Za-zÀ-ỹ]", "").toUpperCase();
+
         if (cleanedKey.isEmpty()) {
+
             throw new IllegalArgumentException("Key must contain at least one letter");
         }
 
-        boolean hasVietnamese = false;
-        for (char c : text.toCharArray()) {
-            if (Character.isLetter(c) && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
-                hasVietnamese = true;
+        boolean vietnameseDetected = false;
+
+        for (char currentChar : text.toCharArray()) {
+
+            boolean englishOnly = (currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z');
+
+            if (Character.isLetter(currentChar) && !englishOnly) {
+
+                vietnameseDetected = true;
                 break;
             }
         }
 
-        return hasVietnamese ? encryptVN(text, cleanedKey) : encryptEng(text, cleanedKey);
+        if (vietnameseDetected) {
+
+            return encryptVN(text, cleanedKey);
+
+        } else {
+
+            return encryptEng(text, cleanedKey);
+        }
     }
 
     private String encryptEng(String text, String key) {
-        StringBuilder result = new StringBuilder();
-        int keyIndex = 0;
-        int keyLen = key.length();
 
-        for (char element : text.toCharArray()) {
-            if ((element >= 'A' && element <= 'Z') || (element >= 'a' && element <= 'z')) {
-                boolean isUpper = Character.isUpperCase(element);
-                char base = isUpper ? 'A' : 'a';
+        StringBuilder encrypted = new StringBuilder();
 
-                char keyChar = key.charAt(keyIndex % keyLen);
+        int keyPointer = 0;
+        int keyLength = key.length();
+
+        for (char currentChar : text.toCharArray()) {
+            boolean validLetter = (currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z');
+
+            if (validLetter) {
+
+                boolean upperCase = Character.isUpperCase(currentChar);
+                char base = upperCase ? 'A' : 'a';
+                char keyChar = key.charAt(keyPointer % keyLength);
                 int shift = keyChar - 'A';
+                int oldIndex = currentChar - base;
+                int encryptedIndex = (oldIndex + shift) % 26;
 
-                int index = element - base;
-                int encrypted = (index + shift) % 26;
+                encrypted.append((char) (encryptedIndex + base));
 
-                result.append((char) (encrypted + base));
-                keyIndex++;
+                keyPointer++;
+
             } else {
-                result.append(element);
+                encrypted.append(currentChar);
             }
         }
-        return result.toString();
+
+        return encrypted.toString();
     }
 
     private String encryptVN(String text, String key) {
-        StringBuilder result = new StringBuilder();
-        int keyIndex = 0;
+
+        StringBuilder encrypted = new StringBuilder();
+
+        int keyPos = 0;
         int keyLen = key.length();
 
-        for (char c : text.toCharArray()) {
-            int lowerIdx = VN_ALPHABET_LOWER.indexOf(c);
-            int upperIdx = VN_ALPHABET_UPPER.indexOf(c);
+        for (char currentChar : text.toCharArray()) {
 
-            if (lowerIdx != -1) {
-                char keyChar = key.charAt(keyIndex % keyLen);
+            int lowerIndex = VN_ALPHABET_LOWER.indexOf(currentChar);
+            int upperIndex = VN_ALPHABET_UPPER.indexOf(currentChar);
+
+            if (lowerIndex != -1) {
+                char keyChar = key.charAt(keyPos % keyLen);
                 int shift = VN_ALPHABET_LOWER.indexOf(Character.toLowerCase(keyChar));
-                if (shift == -1) shift = 0;
-                int newIdx = (lowerIdx + shift) % VN_ALPHABET_SIZE;
-                result.append(VN_ALPHABET_LOWER.charAt(newIdx));
-                keyIndex++;
-            } else if (upperIdx != -1) {
-                char keyChar = key.charAt(keyIndex % keyLen);
+
+                if (shift == -1) {
+                    shift = 0;
+                }
+
+                int encryptedIndex = (lowerIndex + shift) % VN_SIZE;
+                encrypted.append(VN_ALPHABET_LOWER.charAt(encryptedIndex));
+
+                keyPos++;
+
+            } else if (upperIndex != -1) {
+
+                char keyChar = key.charAt(keyPos % keyLen);
                 int shift = VN_ALPHABET_UPPER.indexOf(keyChar);
-                if (shift == -1) shift = 0;
-                int newIdx = (upperIdx + shift) % VN_ALPHABET_SIZE;
-                result.append(VN_ALPHABET_UPPER.charAt(newIdx));
-                keyIndex++;
+
+                if (shift == -1) {
+                    shift = 0;
+                }
+
+                int encryptedIndex = (upperIndex + shift) % VN_SIZE;
+                encrypted.append(VN_ALPHABET_UPPER.charAt(encryptedIndex));
+                keyPos++;
+
             } else {
-                result.append(c);
+                encrypted.append(currentChar);
             }
         }
-        return result.toString();
+
+        return encrypted.toString();
     }
 
-    // === DECRYPTION ===
+    // Encrypt
     @Override
     public String decrypt(String text, String key) {
+
         if (key == null || key.isEmpty()) {
             throw new IllegalArgumentException("Key cannot be null or empty");
         }
 
         String cleanedKey = key.replaceAll("[^A-Za-zÀ-ỹ]", "").toUpperCase();
+
         if (cleanedKey.isEmpty()) {
             throw new IllegalArgumentException("Key must contain at least one letter");
         }
 
         boolean hasVietnamese = false;
-        for (char c : text.toCharArray()) {
-            if (Character.isLetter(c) && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+
+        for (char currentChar : text.toCharArray()) {
+            boolean englishOnly = (currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z');
+
+            if (Character.isLetter(currentChar) && !englishOnly) {
                 hasVietnamese = true;
                 break;
             }
         }
 
-        return hasVietnamese ? decryptVN(text, cleanedKey) : decryptEng(text, cleanedKey);
+        if (hasVietnamese) {
+            return decryptVN(text, cleanedKey);
+
+        } else {
+            return decryptEng(text, cleanedKey);
+        }
     }
 
     private String decryptEng(String text, String key) {
-        StringBuilder result = new StringBuilder();
+
+        StringBuilder decrypted = new StringBuilder();
         int keyIndex = 0;
-        int keyLen = key.length();
+        int keyLength = key.length();
 
-        for (char c : text.toCharArray()) {
-            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-                boolean isUpper = Character.isUpperCase(c);
-                char base = isUpper ? 'A' : 'a';
+        for (char currentChar : text.toCharArray()) {
 
-                char keyChar = key.charAt(keyIndex % keyLen);
+            boolean isAlphabet = (currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z');
+
+            if (isAlphabet) {
+
+                boolean upper = Character.isUpperCase(currentChar);
+                char base = upper ? 'A' : 'a';
+                char keyChar = key.charAt(keyIndex % keyLength);
                 int shift = keyChar - 'A';
+                int currentIndex = currentChar - base;
+                int decryptedIndex = (currentIndex - shift + 26) % 26;
 
-                int index = c - base;
-                int decrypted = (index - shift + 26) % 26;
+                decrypted.append((char) (decryptedIndex + base));
 
-                result.append((char) (decrypted + base));
                 keyIndex++;
+
             } else {
-                result.append(c);
+                decrypted.append(currentChar);
             }
         }
-        return result.toString();
+
+        return decrypted.toString();
     }
 
     private String decryptVN(String text, String key) {
-        StringBuilder result = new StringBuilder();
-        int keyIndex = 0;
-        int keyLen = key.length();
 
-        for (char c : text.toCharArray()) {
-            int lowerIdx = VN_ALPHABET_LOWER.indexOf(c);
-            int upperIdx = VN_ALPHABET_UPPER.indexOf(c);
+        StringBuilder decrypted = new StringBuilder();
+        int keyPosition = 0;
+        int keyLength = key.length();
 
-            if (lowerIdx != -1) {
-                char keyChar = key.charAt(keyIndex % keyLen);
+        for (char currentChar : text.toCharArray()) {
+
+            int lowerIndex = VN_ALPHABET_LOWER.indexOf(currentChar);
+            int upperIndex = VN_ALPHABET_UPPER.indexOf(currentChar);
+
+            if (lowerIndex != -1) {
+
+                char keyChar = key.charAt(keyPosition % keyLength);
                 int shift = VN_ALPHABET_LOWER.indexOf(Character.toLowerCase(keyChar));
-                if (shift == -1) shift = 0;
-                int newIdx = (lowerIdx - shift + VN_ALPHABET_SIZE) % VN_ALPHABET_SIZE;
-                result.append(VN_ALPHABET_LOWER.charAt(newIdx));
-                keyIndex++;
-            } else if (upperIdx != -1) {
-                char keyChar = key.charAt(keyIndex % keyLen);
+
+                if (shift == -1) {
+                    shift = 0;
+                }
+
+                int decryptedIndex = (lowerIndex - shift + VN_SIZE) % VN_SIZE;
+                decrypted.append(VN_ALPHABET_LOWER.charAt(decryptedIndex));
+                keyPosition++;
+
+            } else if (upperIndex != -1) {
+
+                char keyChar = key.charAt(keyPosition % keyLength);
                 int shift = VN_ALPHABET_UPPER.indexOf(keyChar);
-                if (shift == -1) shift = 0;
-                int newIdx = (upperIdx - shift + VN_ALPHABET_SIZE) % VN_ALPHABET_SIZE;
-                result.append(VN_ALPHABET_UPPER.charAt(newIdx));
-                keyIndex++;
+
+                if (shift == -1) {
+                    shift = 0;
+                }
+
+                int decryptedIndex = (upperIndex - shift + VN_SIZE) % VN_SIZE;
+
+                decrypted.append(VN_ALPHABET_UPPER.charAt(decryptedIndex));
+                keyPosition++;
+
             } else {
-                result.append(c);
+                decrypted.append(currentChar);
             }
         }
-        return result.toString();
+        return decrypted.toString();
     }
+
 }

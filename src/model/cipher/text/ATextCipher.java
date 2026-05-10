@@ -44,6 +44,6 @@ public abstract class ATextCipher<K> implements ITextCipher<K> {
                 return x;
             }
         }
-        return -1; // hoặc throw exception tùy bạn
+        return -1;
     }
 }

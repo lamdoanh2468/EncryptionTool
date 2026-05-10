@@ -3,185 +3,219 @@ package model.cipher.text;
 import java.util.Random;
 
 public class Hill extends ATextCipher<int[][]> {
-    private static final int VN_MOD = VN_ALPHABET_LOWER.length();
-    private static final int EN_MOD = ENG_LOWER.length();
+    private static final int VN_SIZE = VN_ALPHABET_LOWER.length();
+    private static final int EN_SIZE = ENG_LOWER.length();
 
-    private int[][] currentKey;
+    private int[][] loadedKey;
 
-    public static int det(int[][] matrix) {
-        return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1];
+    public static int det(int[][] mtx) {
+        return (mtx[0][0] * mtx[1][1]) - (mtx[0][1] * mtx[1][0]);
     }
 
     @Override
     public int[][] genKey() {
-        Random rng = new Random();
-        int[][] matrix;
-        do {
-            matrix = new int[][]{
-                    {rng.nextInt(26), rng.nextInt(26)},
-                    {rng.nextInt(26), rng.nextInt(26)}
-            };
-        } while (gcd(26, Math.abs(det(matrix))) != 1);
-        currentKey = matrix;
-        return currentKey;
-    }
 
-    @Override
-    public void loadKey(int[][] key) {
-        this.currentKey = key;
+        Random random = new Random();
+        int[][] generated;
+
+        do {
+
+            generated = new int[][]{{random.nextInt(26), random.nextInt(26)}, {random.nextInt(26), random.nextInt(26)}};
+
+        } while (gcd(26, Math.abs(det(generated))) != 1);
+
+        loadedKey = generated;
+
+        return generated;
     }
 
     @Override
     public String getKey() {
-        if (currentKey == null) return "Khóa Hill hiện không có";
 
-        return "[" + currentKey[0][0] + "," + currentKey[0][1] + "]" + "\n"
-                + "[" + currentKey[1][0] + "," + currentKey[1][1] + "]";
+        if (loadedKey == null) {
+            return "Khóa Hill hiện không có";
+        }
+
+        return "[" + loadedKey[0][0] + "," + loadedKey[0][1] + "]\n" + "[" + loadedKey[1][0] + "," + loadedKey[1][1] + "]";
     }
 
-
-    /**
-     * [2,5]
-     * [1,3]
-     * **/
     @Override
     public int[][] parseKey(String keyString) {
-        if (keyString == null || keyString.isEmpty()) {
+
+        if (keyString == null || keyString.trim().isEmpty()) {
             throw new IllegalArgumentException("Khóa hiện không có");
         }
+
+        int[][] parsed = new int[2][2];
+
         try {
 
-            String[] rows = keyString.split("\\n");
-            int[][] matrix = new int[2][2];
+            String[] lines = keyString.split("\\n");
+            // assuming 2x2
+            for (int rowIndex = 0; rowIndex < 2; rowIndex++) {
 
-            for (int i = 0; i < 2; i++) {
-                String row = rows[i]
-                        .replace("[", "")
-                        .replace("]", "")
-                        .trim();
+                String currentLine = lines[rowIndex].replace("[", "").replace("]", "").trim();
+                String[] values = currentLine.split(",");
 
-                String[] nums = row.split(",");
-
-                matrix[i][0] = Integer.parseInt(nums[0].trim());
-                matrix[i][1] = Integer.parseInt(nums[1].trim());
+                parsed[rowIndex][0] = Integer.parseInt(values[0].trim());
+                parsed[rowIndex][1] = Integer.parseInt(values[1].trim());
             }
 
-            return matrix;
-
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return null;
         }
+
+        return parsed;
     }
 
     public int[][] inverseMatrix(int[][] key, int mod) {
 
-        int det = det(key);
-        det = (det % mod + mod) % mod;
+        int determinant = det(key);
 
-        int detInv = modInverse(det, mod);
+        determinant = ((determinant % mod) + mod) % mod;
 
-        int[][] inverse = new int[2][2];
+        int inverseDet = modInverse(determinant, mod);
 
-        inverse[0][0] = key[1][1];
-        inverse[0][1] = -key[0][1];
-        inverse[1][0] = -key[1][0];
-        inverse[1][1] = key[0][0];
+        int[][] inverseMatrix = new int[2][2];
 
-        for (int i = 0; i < inverse.length; i++) {
-            for (int j = 0; j < inverse[i].length; j++) {
-                inverse[i][j] = (inverse[i][j] * detInv) % mod;
-                if (inverse[i][j] < 0) inverse[i][j] += mod;
+        // adjudicate matrix
+        inverseMatrix[0][0] = key[1][1];
+        inverseMatrix[0][1] = -key[0][1];
+
+        inverseMatrix[1][0] = -key[1][0];
+        inverseMatrix[1][1] = key[0][0];
+
+        for (int row = 0; row < inverseMatrix.length; row++) {
+            for (int col = 0; col < inverseMatrix[row].length; col++) {
+
+                int value = inverseMatrix[row][col] * inverseDet;
+                value = value % mod;
+
+                if (value < 0) {
+                    value += mod;
+                }
+
+                inverseMatrix[row][col] = value;
             }
         }
 
-        return inverse;
+        return inverseMatrix;
     }
 
-    // === ENCRYPTION ===
+    // Encrypt
     @Override
     public String encrypt(String text, int[][] key) {
-        if (text == null || key == null) return "";
-        boolean isVN = hasVietnamese(text);
-        String alphabet = isVN ? VN_ALPHABET_LOWER : ENG_LOWER;
-        int mod = isVN ? VN_MOD : EN_MOD;
 
-        // <<< Remove special text, whitespace >>>
-        StringBuilder clean = new StringBuilder();
-        String lowerText = text.toLowerCase();
-        for (char c : lowerText.toCharArray()) {
-            if (alphabet.indexOf(c) != -1) {
-                clean.append(c);
+        if (text == null || key == null) {
+            return "";
+        }
+
+        boolean vietnameseMode = hasVietnamese(text);
+
+        String alphabet = vietnameseMode ? VN_ALPHABET_LOWER : ENG_LOWER;
+
+        int modulo = vietnameseMode ? VN_SIZE : EN_SIZE;
+
+        StringBuilder filteredText = new StringBuilder();
+
+        String lowered = text.toLowerCase();
+
+        for (char ch : lowered.toCharArray()) {
+
+            if (alphabet.indexOf(ch) != -1) {
+                filteredText.append(ch);
             }
         }
-        String cleaned = clean.toString();
-        if (cleaned.length() % 2 != 0) {
-            cleaned += "x"; // pad
+
+        String plain = filteredText.toString();
+
+        // padding if odd length
+        if (plain.length() % 2 != 0) {
+            plain += "x";
         }
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder encrypted = new StringBuilder();
 
-        for (int i = 0; i < cleaned.length(); i += 2) {
+        for (int idx = 0; idx < plain.length(); idx += 2) {
 
-            // <<< Convert to 0 - 25 >>>
-            int firstPlain = alphabet.indexOf(cleaned.charAt(i));
-            int secondPlain = alphabet.indexOf(cleaned.charAt(i + 1));
+            int left = alphabet.indexOf(plain.charAt(idx));
+            int right = alphabet.indexOf(plain.charAt(idx + 1));
 
-            int firstCipher = (key[0][0] * firstPlain + key[0][1] * secondPlain) % mod;
-            int secondCipher = (key[1][0] * firstPlain + key[1][1] * secondPlain) % mod;
+            int enc1 = (key[0][0] * left) + (key[0][1] * right);
 
-            // <<< Prevent minus value >>>
-            firstCipher = (firstCipher < 0) ? firstCipher + mod : firstCipher;
-            secondCipher = (secondCipher < 0) ? secondCipher + mod : secondCipher;
+            int enc2 = (key[1][0] * left) + (key[1][1] * right);
 
+            enc1 = enc1 % modulo;
+            enc2 = enc2 % modulo;
 
-            result.append(alphabet.charAt(firstCipher));
-            result.append(alphabet.charAt(secondCipher));
+            // not really needed often, but safer
+            if (enc1 < 0) {
+                enc1 += modulo;
+            }
+
+            if (enc2 < 0) {
+                enc2 += modulo;
+            }
+
+            encrypted.append(alphabet.charAt(enc1));
+            encrypted.append(alphabet.charAt(enc2));
         }
 
-        return result.toString();
+        return encrypted.toString();
     }
 
-    // ===DECRYPTION ===
+    // Decrypt
     @Override
     public String decrypt(String text, int[][] key) {
-        if (text == null || key == null) return "";
-        boolean isVN = hasVietnamese(text);
-        String alphabet = isVN ? VN_ALPHABET_LOWER : ENG_LOWER;
-        int mod = isVN ? VN_MOD : EN_MOD;
 
-        // <<< Remove special text, whitespace >>>
-        StringBuilder clean = new StringBuilder();
-        String lowerText = text.toLowerCase();
-        for (char c : lowerText.toCharArray()) {
-            if (alphabet.indexOf(c) != -1) {
-                clean.append(c);
+        if (text == null || key == null) {
+            return "";
+        }
+
+        boolean vnMode = hasVietnamese(text);
+
+        String alphabet = vnMode ? VN_ALPHABET_LOWER : ENG_LOWER;
+
+        int modulo = vnMode ? VN_SIZE : EN_SIZE;
+
+        StringBuilder cleanedInput = new StringBuilder();
+
+        for (char c : text.toLowerCase().toCharArray()) {
+
+            if (alphabet.indexOf(c) >= 0) {
+                cleanedInput.append(c);
             }
         }
 
-        StringBuilder result = new StringBuilder();
-        int[][] invKey = inverseMatrix(key, mod);
+        int[][] reverseKey = inverseMatrix(key, modulo);
 
-        for (int i = 0; i < clean.length(); i += 2) {
+        StringBuilder decrypted = new StringBuilder();
 
-            // <<< Convert to 0 - 25 >>>
-            int firstPlain = alphabet.indexOf(clean.charAt(i));
-            int secondPlain = alphabet.indexOf(clean.charAt(i + 1));
+        for (int i = 0; i < cleanedInput.length(); i += 2) {
 
-            int firstCipher = (invKey[0][0] * firstPlain + invKey[0][1] * secondPlain) % mod;
-            int secondCipher = (invKey[1][0] * firstPlain + invKey[1][1] * secondPlain) % mod;
+            int first = alphabet.indexOf(cleanedInput.charAt(i));
+            int second = alphabet.indexOf(cleanedInput.charAt(i + 1));
 
-            // <<< Prevent minus value >>>
-            firstCipher = (firstCipher < 0) ? firstCipher + mod : firstCipher;
-            secondCipher = (secondCipher < 0) ? secondCipher + mod : secondCipher;
+            int decoded1 = (reverseKey[0][0] * first) + (reverseKey[0][1] * second);
+            int decoded2 = (reverseKey[1][0] * first) + (reverseKey[1][1] * second);
 
+            decoded1 %= modulo;
+            decoded2 %= modulo;
 
-            result.append(alphabet.charAt(firstCipher));
-            result.append(alphabet.charAt(secondCipher));
+            if (decoded1 < 0) decoded1 += modulo;
+            if (decoded2 < 0) decoded2 += modulo;
+
+            decrypted.append(alphabet.charAt(decoded1));
+            decrypted.append(alphabet.charAt(decoded2));
         }
-        if (result.length() > 0 && result.charAt(result.length() - 1) == 'x') {
-            result.deleteCharAt(result.length() - 1);
+
+        if (!decrypted.isEmpty() && decrypted.charAt(decrypted.length() - 1) == 'x') {
+
+            decrypted.deleteCharAt(decrypted.length() - 1);
         }
-        return result.toString();
+
+        return decrypted.toString();
     }
+
 
 }
