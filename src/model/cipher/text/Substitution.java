@@ -59,8 +59,8 @@ public class Substitution extends ATextCipher<String> {
         Map<Character, Character> map = buildMapping(ENG_ALPHABET, key);
         StringBuilder result = new StringBuilder(plain.length());
 
-        for (char c : plain.toCharArray()) {
-            result.append(map.getOrDefault(c, c));
+        for (char charElement : plain.toCharArray()) {
+            result.append(map.getOrDefault(charElement, charElement));
         }
 
         return result.toString();

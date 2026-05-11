@@ -1,11 +1,9 @@
 package controller.text;
 
-import model.cipher.text.*;
+import model.cipher.text.ATextCipher;
 import view.MainFrame;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.*;
 
 public class TextController {
     private final MainFrame view;
@@ -13,18 +11,18 @@ public class TextController {
     // Controllers
     private final SymmetricTextController symmetricController;
     private final AsymmetricTextController asymmetricController;
-    private final HashController hashController;
+    private final HashTextController hashController;
 
     public TextController(MainFrame view) {
         this.view = view;
         this.symmetricController = new SymmetricTextController(view);
         this.asymmetricController = new AsymmetricTextController(view);
-        this.hashController = new HashController(view);
+        this.hashController = new HashTextController(view);
     }
 
     // Symmetric
-    public void importKey(JTextArea keyArea) {
-        symmetricController.importKey(keyArea);
+    public void importKey(JTextArea keyArea, JComboBox<String> algos) {
+        symmetricController.importKey(keyArea, algos);
     }
 
     public void exportKey(JTextArea keyArea, String ext) {
@@ -66,6 +64,18 @@ public class TextController {
     // Asymmetric
     public void genKeyPair(JTextArea publicArea, JTextArea privateArea) {
         asymmetricController.genKeyPair(publicArea, privateArea);
+    }
+
+    public void importPublicKey( JTextArea keyArea) {
+        asymmetricController.importPublicKey(keyArea);
+    }
+
+    public void importPrivateKey(JTextArea keyArea) {
+        asymmetricController.importPrivateKey(keyArea);
+    }
+
+    public void exportKeyPair(JTextArea publicArea, JTextArea privateArea) {
+        asymmetricController.exportKeyPair(publicArea, privateArea);
     }
 
     public void encryptRSA(String plainText, JTextArea publicKeyArea, JTextArea outputArea) {

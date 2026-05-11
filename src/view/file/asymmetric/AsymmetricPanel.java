@@ -5,7 +5,7 @@ import controller.file.FileController;
 import controller.file.SymmetricFileController;
 import model.cipher.file.AFileAsymCipher;
 import model.cipher.file.AFileSymCipher;
-import model.cipher.file.config.AsymmetricFiletConfig;
+import model.cipher.file.config.AsymmetricFileConfig;
 import view.MainFrame;
 import view.file.FilePanelUI;
 
@@ -290,10 +290,10 @@ public class AsymmetricPanel extends JPanel {
         if (symPaddingCombo.getItemCount() > 0) symPaddingCombo.setSelectedIndex(0);
     }
 
-    public AsymmetricFiletConfig buildEncryptConfig(String asymAlgo,
-                                                    File selectedFile
+    public AsymmetricFileConfig buildEncryptConfig(String asymAlgo,
+                                                   File selectedFile
     ) {
-        return new AsymmetricFiletConfig(
+        return new AsymmetricFileConfig(
                 fileController.getAsymCipher(asymAlgo),
                 fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
                 (String) asymModeCombo.getSelectedItem(),

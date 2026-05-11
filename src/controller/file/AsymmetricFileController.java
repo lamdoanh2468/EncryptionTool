@@ -1,7 +1,7 @@
 package controller.file;
 
 import model.cipher.file.AFileAsymCipher;
-import model.cipher.file.config.AsymmetricFiletConfig;
+import model.cipher.file.config.AsymmetricFileConfig;
 import view.file.asymmetric.AsymmetricPanel;
 
 import javax.crypto.BadPaddingException;
@@ -133,7 +133,7 @@ public class AsymmetricFileController {
         fileController.updateStatus("Đã lưu các khoá và thông tin thuật toán thành công, tiếp tục tạo khoá đối xứng ");
     }
 
-    public void encryptFileAsymmetric(AsymmetricFiletConfig config)
+    public void encryptFileAsymmetric(AsymmetricFileConfig config)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException,
             IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
 
@@ -171,7 +171,7 @@ public class AsymmetricFileController {
         }
     }
 
-    public void decryptFileAsymmetric(AsymmetricFiletConfig config)
+    public void decryptFileAsymmetric(AsymmetricFileConfig config)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException,
             IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
 

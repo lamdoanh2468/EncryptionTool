@@ -1,6 +1,6 @@
 package model.cipher.file;
 
-public class CipherFactory {
+public class FileCipherFactory {
     public static AFileSymCipher getSymmetricCipher(String algoName) {
         if (algoName == null) return null;
 

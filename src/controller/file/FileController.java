@@ -2,7 +2,7 @@ package controller.file;
 
 import model.cipher.file.AFileAsymCipher;
 import model.cipher.file.AFileSymCipher;
-import model.cipher.file.CipherFactory;
+import model.cipher.file.FileCipherFactory;
 import view.MainFrame;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.hash.HashFilePanel;
@@ -40,12 +40,12 @@ public class FileController {
     }
 
     public AFileSymCipher getSymCipher(String algoName) {
-        this.currentSymCipher = CipherFactory.getSymmetricCipher(algoName);
+        this.currentSymCipher = FileCipherFactory.getSymmetricCipher(algoName);
         return currentSymCipher;
     }
 
     public AFileAsymCipher getAsymCipher(String algoName) {
-        this.currentAsymCipher = CipherFactory.getAsymmetricCipher(algoName);
+        this.currentAsymCipher = FileCipherFactory.getAsymmetricCipher(algoName);
         return currentAsymCipher;
     }
 

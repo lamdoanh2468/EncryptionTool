@@ -1,82 +1,130 @@
 package controller.text;
 
+import model.cipher.file.AFileAsymCipher;
+import model.cipher.text.ATextCipher;
 import model.cipher.text.RSAText;
 import view.MainFrame;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 public class AsymmetricTextController {
     private final MainFrame view;
     private final RSAText rsa = new RSAText();
 
+    public PublicKey currentPublicKey;
+    public PrivateKey currentPrivateKey;
+
     public AsymmetricTextController(MainFrame view) {
         this.view = view;
     }
 
-    // ==================== KEY MANAGEMENT ====================
-    public void importKey(JTextArea keyArea) {
+    public void importPublicKey(JTextArea keyArea) {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Nhập khóa từ đường dẫn");
-        int option = fileChooser.showOpenDialog(view);
+        fileChooser.setDialogTitle("Chọn file chứa khóa công khai");
+        int userSelection = fileChooser.showOpenDialog(null);
 
-        if (option == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+        if (userSelection != JFileChooser.APPROVE_OPTION) return;
 
-            if (!selectedFile.getName().toLowerCase().endsWith(".txt")) {
-                JOptionPane.showMessageDialog(null, "File không đúng định dạng .txt");
-                return;
-            }
+        File selectedFile = fileChooser.getSelectedFile();
+        try {
+            String encodeKey = java.nio.file.Files.readString(selectedFile.toPath()).trim();
+            byte[] decodedKey = Base64.getDecoder().decode(encodeKey);
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile))) {
-                StringBuilder builder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-                keyArea.setText(builder.toString());
-                JOptionPane.showMessageDialog(null, "Tải khóa thành công");
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null, "Lỗi khi nhập khóa");
-            }
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedKey);
+
+            currentPublicKey = keyFactory.generatePublic(keySpec);
+            rsa.setPubKey(currentPublicKey);
+            keyArea.setText(encodeKey);
+            JOptionPane.showMessageDialog(null, "Nhập khóa công khai thành công");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Lỗi khi nhập public key", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    public void exportKey(JTextArea keyArea, String ext) {
-        if (keyArea.getText() == null || keyArea.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa");
+    public void importPrivateKey(JTextArea keyArea) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file chứa khóa bí mật");
+        int userSelection = fileChooser.showOpenDialog(null);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) return;
+
+        File selectedFile = fileChooser.getSelectedFile();
+        try {
+            String encodedKey = java.nio.file.Files.readString(selectedFile.toPath()).trim();
+            byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKey);
+
+            currentPrivateKey = keyFactory.generatePrivate(keySpec);
+            rsa.setPriKey(currentPrivateKey);
+            JOptionPane.showMessageDialog(null, "Nhập private key thành công");
+            keyArea.setText(encodedKey);
+
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(null, "File không đúng định dạng", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Lỗi khi nhập private key", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void exportKeyPair(JTextArea publicArea, JTextArea privateArea) {
+
+        if (publicArea == null || publicArea.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Chưa có Public Key!");
+            return;
+        }
+        if (privateArea == null || privateArea.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Chưa có Private Key!");
             return;
         }
 
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save as");
+        fileChooser.setDialogTitle("Chọn thư mục lưu cặp khóa");
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         int userSelection = fileChooser.showSaveDialog(view);
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            if (!file.getName().toLowerCase().endsWith(ext)) {
-                file = new File(file.getPath() + "." + ext);
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFolder = fileChooser.getSelectedFile();
+
+        File publicFile = new File(selectedFolder, "public.key");
+        File privateFile = new File(selectedFolder, "private.key");
+
+        try {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(publicFile))) {
+                writer.write(publicArea.getText().trim());
             }
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(keyArea.getText());
-                JOptionPane.showMessageDialog(null, "Lưu khóa vào file thành công");
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null, "Lỗi khi xuất khóa");
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(privateFile))) {
+                writer.write(privateArea.getText().trim());
             }
+
+            JOptionPane.showMessageDialog(null, "Đã lưu thành công 2 file:\n" + publicFile.getName() + "\n" + privateFile.getName());
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Lỗi khi xuất cặp khóa!");
         }
     }
 
-    public void copyKey(JTextArea keyArea) {
-        Toolkit.getDefaultToolkit().getSystemClipboard()
-                .setContents(new StringSelection(keyArea.getText()), null);
-        JOptionPane.showMessageDialog(null, "Sao chép thành công");
-    }
 
-    // ==================== RSA SPECIFIC ====================
     public void genKeyPair(JTextArea publicArea, JTextArea privateArea) {
         rsa.genKey();
+        currentPublicKey = rsa.getPublicKey();
+        currentPrivateKey = rsa.getPrivateKey();
         publicArea.setText(rsa.getPublicKeyText());
         privateArea.setText(rsa.getPrivateKeyText());
     }

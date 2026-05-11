@@ -4,7 +4,7 @@ import controller.file.AsymmetricFileController;
 import controller.file.FileController;
 import controller.file.HashFileController;
 import controller.file.SymmetricFileController;
-import model.cipher.file.config.AsymmetricFiletConfig;
+import model.cipher.file.config.AsymmetricFileConfig;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.hash.HashFilePanel;
 import view.file.symmetric.SymmetricPanel;
@@ -154,7 +154,7 @@ public class FileSelectorPanel extends JPanel {
         return "Bất đối xứng".equals(typeCombo.getSelectedItem());
     }
 
-    public AsymmetricFiletConfig buildAsymmetricEncryptConfig(File selectedFile) {
+    public AsymmetricFileConfig buildAsymmetricEncryptConfig(File selectedFile) {
         String asymAlgo = (String) algoCombo.getSelectedItem();
         return asymmetricPanel.buildEncryptConfig(asymAlgo, selectedFile);
     }

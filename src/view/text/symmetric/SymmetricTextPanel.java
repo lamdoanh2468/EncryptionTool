@@ -75,7 +75,7 @@ public class SymmetricTextPanel extends JPanel {
         copyButton.addActionListener(e -> textController.copyKey(keyArea));
 
         importButton = createButton("Nhập khóa từ file", Color.GREEN);
-        importButton.addActionListener(e -> textController.importKey(keyArea));
+        importButton.addActionListener(e -> textController.importKey(keyArea,algoCombo));
 
         exportButton = createButton("Xuất khóa", new Color(70, 70, 70));
         exportButton.addActionListener(e -> textController.exportKey(keyArea, "txt"));

@@ -8,8 +8,8 @@ public class Hill extends ATextCipher<int[][]> {
 
     private int[][] loadedKey;
 
-    public static int det(int[][] mtx) {
-        return (mtx[0][0] * mtx[1][1]) - (mtx[0][1] * mtx[1][0]);
+    public static int det(int[][] matrix) {
+        return (matrix[0][0] * matrix[1][1]) - (matrix[0][1] * matrix[1][0]);
     }
 
     @Override
@@ -111,19 +111,15 @@ public class Hill extends ATextCipher<int[][]> {
         }
 
         boolean vietnameseMode = hasVietnamese(text);
-
         String alphabet = vietnameseMode ? VN_ALPHABET_LOWER : ENG_LOWER;
-
         int modulo = vietnameseMode ? VN_SIZE : EN_SIZE;
-
         StringBuilder filteredText = new StringBuilder();
-
         String lowered = text.toLowerCase();
 
-        for (char ch : lowered.toCharArray()) {
+        for (char charElement : lowered.toCharArray()) {
 
-            if (alphabet.indexOf(ch) != -1) {
-                filteredText.append(ch);
+            if (alphabet.indexOf(charElement) != -1) {
+                filteredText.append(charElement);
             }
         }
 
@@ -131,18 +127,17 @@ public class Hill extends ATextCipher<int[][]> {
 
         // padding if odd length
         if (plain.length() % 2 != 0) {
-            plain += "x";
+            plain += "_";
         }
 
         StringBuilder encrypted = new StringBuilder();
 
-        for (int idx = 0; idx < plain.length(); idx += 2) {
+        for (int index = 0; index < plain.length(); index += 2) {
 
-            int left = alphabet.indexOf(plain.charAt(idx));
-            int right = alphabet.indexOf(plain.charAt(idx + 1));
+            int left = alphabet.indexOf(plain.charAt(index));
+            int right = alphabet.indexOf(plain.charAt(index + 1));
 
             int enc1 = (key[0][0] * left) + (key[0][1] * right);
-
             int enc2 = (key[1][0] * left) + (key[1][1] * right);
 
             enc1 = enc1 % modulo;
@@ -209,7 +204,7 @@ public class Hill extends ATextCipher<int[][]> {
             decrypted.append(alphabet.charAt(decoded2));
         }
 
-        if (!decrypted.isEmpty() && decrypted.charAt(decrypted.length() - 1) == 'x') {
+        if (!decrypted.isEmpty() && decrypted.charAt(decrypted.length() - 1) == '_') {
 
             decrypted.deleteCharAt(decrypted.length() - 1);
         }

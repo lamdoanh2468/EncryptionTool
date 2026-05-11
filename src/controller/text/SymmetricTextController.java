@@ -9,24 +9,16 @@ import java.awt.datatransfer.StringSelection;
 import java.io.*;
 
 public class SymmetricTextController {
-    private final MainFrame view;
-
-    // Text symmetric cipher models
-    private final Caesar caesar = new Caesar();
-    private final Affine affine = new Affine();
-    private final Vigenere vigenere = new Vigenere();
-    private final Hill hill = new Hill();
-    private final Substitution substitution = new Substitution();
-    private final Permutation permutation = new Permutation();
+    private final MainFrame mainView;
 
     public SymmetricTextController(MainFrame view) {
-        this.view = view;
+        this.mainView = view;
     }
 
-    public void importKey(JTextArea keyArea) {
+    public void importKey(JTextArea keyArea,JComboBox<String>algos) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Nhập khóa từ đường dẫn");
-        int option = fileChooser.showOpenDialog(view);
+        int option = fileChooser.showOpenDialog(mainView);
 
         if (option == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
@@ -42,127 +34,213 @@ public class SymmetricTextController {
                 while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
-                keyArea.setText(builder.toString());
+                String keyContent = builder.toString();
+                String detectedAlgo = detectSymmetricAlgorithm(keyContent);
+                algos.setSelectedItem(detectedAlgo);
                 JOptionPane.showMessageDialog(null, "Tải khóa thành công");
+                keyArea.setText(keyContent);
+
             } catch (IOException ioe) {
                 JOptionPane.showMessageDialog(null, "Lỗi khi nhập khóa");
             }
         }
     }
 
-    public void exportKey(JTextArea keyArea, String ext) {
-        if (keyArea.getText() == null || keyArea.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Người dùng chưa tạo khóa");
+    public void exportKey(JTextArea keyArea, String extension) {
+
+        String currentKey = keyArea.getText();
+
+        if (currentKey == null || currentKey.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(mainView, "Chưa có khóa để lưu");
             return;
         }
 
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save as");
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Lưu khóa");
 
-        int userSelection = fileChooser.showSaveDialog(view);
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            if (!file.getName().toLowerCase().endsWith(ext)) {
-                file = new File(file.getPath() + "." + ext);
-            }
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(keyArea.getText());
-                JOptionPane.showMessageDialog(null, "Lưu khóa vào file thành công");
-            } catch (IOException ioe) {
-                JOptionPane.showMessageDialog(null, "Lỗi khi xuất khóa");
-            }
-        }
-    }
+        int saveResult = chooser.showSaveDialog(mainView);
 
-    public <K> void generateKey(ATextCipher<K> cipher, JTextArea keyArea) {
-        K key = cipher.genKey();
-        cipher.loadKey(key);
-        keyArea.setText(cipher.getKey());
-    }
-
-    public <K> void encryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea outputArea) {
-        if (keyText == null || keyText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Chưa có khóa, vui lòng tạo khóa");
+        if (saveResult != JFileChooser.APPROVE_OPTION) {
             return;
         }
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản!");
-            return;
+
+        File saveFile = chooser.getSelectedFile();
+
+        if (!saveFile.getName().toLowerCase().endsWith(extension)) {
+            saveFile = new File(saveFile.getAbsolutePath() + "." + extension);
         }
+
         try {
-            K key = cipher.parseKey(keyText.trim());
-            if (key == null) {
-                JOptionPane.showMessageDialog(view, "Key không hợp lệ! Vui lòng tạo lại key", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile));
+
+            bw.write(currentKey);
+            bw.flush();
+            bw.close();
+
+            JOptionPane.showMessageDialog(null, "Lưu khóa thành công");
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Xuất khóa thất bại");
+        }
+    }
+
+    public <K> void generateKey(ATextCipher<K> cipherObj, JTextArea keyArea) {
+
+        K randomKey = cipherObj.genKey();
+        cipherObj.loadKey(randomKey);
+        String generatedKey = cipherObj.getKey();
+        keyArea.setText(generatedKey);
+    }
+
+    public <K> void encryptText(ATextCipher<K> cipherObj, String plainText, String keyString, JTextArea outputArea) {
+
+        if (keyString == null || keyString.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(mainView, "Chưa có khóa, hãy tạo khóa trước");
+            return;
+        }
+
+        if (plainText == null || plainText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(mainView, "Bạn chưa nhập văn bản");
+            return;
+        }
+
+        try {
+
+            K parsedKey = cipherObj.parseKey(keyString.trim());
+
+            if (parsedKey == null) {
+                JOptionPane.showMessageDialog(mainView, "Key không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            String cipherText = cipher.encrypt(text, key);
-            JOptionPane.showMessageDialog(null, "Mã hóa thành công");
-            outputArea.setText(cipherText);
+            String encryptedResult = cipherObj.encrypt(plainText, parsedKey);
+            outputArea.setText(encryptedResult);
+            JOptionPane.showMessageDialog(null, "Mã hóa xong");
+
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Lỗi mã hóa, vui lòng tạo lại khóa và thử lại");
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(mainView, "Có lỗi khi mã hóa, thử tạo key mới");
         }
     }
 
-    public <K> void decryptText(ATextCipher<K> cipher, String text, String keyText, JTextArea inputArea) {
+
+    public <K> void decryptText(ATextCipher<K> cipherObj, String encryptedText, String keyText, JTextArea inputArea) {
+
         if (keyText == null || keyText.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Chưa có khóa, vui lòng tạo hoặc import khóa", "Lỗi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(mainView, "Thiếu khóa giải mã", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (text == null || text.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng nhập văn bản!");
+        if (encryptedText == null || encryptedText.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(mainView, "Chưa có nội dung cần giải mã");
             return;
         }
+
         try {
-            K key = cipher.parseKey(keyText.trim());
-            if (key == null) {
-                JOptionPane.showMessageDialog(view, "Key không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            K parsedKey = cipherObj.parseKey(keyText.trim());
+            if (parsedKey == null) {
+                JOptionPane.showMessageDialog(mainView, "Key bị lỗi", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            String plainText = cipher.decrypt(text, key);
-            JOptionPane.showMessageDialog(null, "Giải mã thành công");
-            inputArea.setText(plainText);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Lỗi giải mã: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            String originalText = cipherObj.decrypt(encryptedText, parsedKey);
+            inputArea.setText(originalText);
+            JOptionPane.showMessageDialog(null, "Giải mã hoàn tất");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(mainView, "Lỗi giải mã: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     public void copyKey(JTextArea keyArea) {
-        Toolkit.getDefaultToolkit().getSystemClipboard()
-                .setContents(new StringSelection(keyArea.getText()), null);
-        JOptionPane.showMessageDialog(null, "Sao chép thành công");
+
+        String keyText = keyArea.getText();
+
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(keyText), null);
+
+        JOptionPane.showMessageDialog(null, "Đã copy khóa");
     }
 
-    public ATextCipher<?> getCipher(String algoName) {
-        if (algoName == null) return null;
-        return switch (algoName) {
-            case "Caesar" -> caesar;
-            case "Affine" -> affine;
-            case "Vigenere" -> vigenere;
-            case "Thay thế" -> substitution;
-            case "Hoán vị" -> permutation;
-            case "Hill" -> hill;
-            default -> null;
-        };
-    }
 
-    public void toggleOutputArea(boolean enable) {
-        if (view.textPanel != null && view.textPanel.outputArea != null) {
-            view.textPanel.outputArea.setEditable(enable);
+    public void toggleOutputArea(boolean isEnable) {
+
+        if (mainView == null) {
+            return;
+        }
+
+        if (mainView.textPanel != null && mainView.textPanel.outputArea != null) {
+
+            mainView.textPanel.outputArea.setEditable(isEnable);
         }
     }
 
-    public void removeKeyArea(JTextArea... keyArea) {
-        for (JTextArea area : keyArea) {
-            area.setText("");
+    public void removeKeyArea(JTextArea... keyAreas) {
+
+        for (JTextArea txt : keyAreas) {
+
+            if (txt != null) {
+                txt.setText("");
+            }
         }
     }
 
     public void clearAll() {
-        if (view == null || view.textPanel == null) return;
-        if (view.textPanel.inputArea == null || view.textPanel.outputArea == null) return;
 
-        view.textPanel.inputArea.setText("");
-        view.textPanel.outputArea.setText("");
-        view.textPanel.updateCount();
+        if (mainView == null || mainView.textPanel == null) {
+            return;
+        }
+
+        JTextArea input = mainView.textPanel.inputArea;
+        JTextArea output = mainView.textPanel.outputArea;
+
+        if (input == null || output == null) {
+            return;
+        }
+
+        input.setText("");
+        output.setText("");
+
+        // update lại số ký tự
+        mainView.textPanel.updateCount();
+    }
+
+    private String detectSymmetricAlgorithm(String key) {
+
+        if (key == null || key.trim().isEmpty()) {
+            return null;
+        }
+
+        key = key.trim();
+
+        if (key.matches("\\d{1,2}")) {
+
+            int shiftValue = Integer.parseInt(key);
+            if (shiftValue >= 0 && shiftValue <= 25) {
+                return "Caesar";
+            }
+        }
+
+        if (key.matches(".*\\d+.*\\d+.*") && key.length() < 15) {
+            return "Affine";
+        }
+
+        if (key.contains(";") || key.matches(".*\\d+\\s+\\d+.*\\d+.*")) {
+            return "Hill";
+        }
+
+        if (key.length() >= 20) {
+            return "Thay thế";
+        }
+
+        if (key.contains(",") || key.contains("-") || key.matches(".*[a-zA-Z].*[0-9].*")) {
+            return "Hoán vị";
+        }
+
+        if (key.matches("[a-zA-Z]+")) {
+            return "Vigenere";
+        }
+
+        return "Caesar";
+    }
+
+    public ATextCipher<?> getCipher(String algoName) {
+       return TextCipherFactory.getCipher(algoName);
     }
 }

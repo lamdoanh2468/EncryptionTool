@@ -5,7 +5,7 @@ import model.cipher.file.AFileSymCipher;
 
 import java.io.File;
 
-public class AsymmetricFiletConfig {
+public class AsymmetricFileConfig {
     private final AFileAsymCipher asymCipher;
     private final AFileSymCipher symCipher;
     private final String asymMode;
@@ -14,7 +14,7 @@ public class AsymmetricFiletConfig {
     private final String symPadding;
     private final File selectedFile;
 
-    public AsymmetricFiletConfig(
+    public AsymmetricFileConfig(
             AFileAsymCipher asymCipher,
             AFileSymCipher symCipher,
             String asymMode,

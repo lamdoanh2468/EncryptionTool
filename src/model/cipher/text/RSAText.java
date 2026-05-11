@@ -8,8 +8,8 @@ import java.util.Base64;
 
 public class RSAText extends ATextCipher<KeyPair> {
 
-    private static final String RSA_TYPE = "RSA";
-    private static final String RSA_TRANSFORM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+    public static final String RSA_TYPE = "RSA";
+    public static final String RSA_TRANSFORM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 
     private KeyPair currentKeys;
 
@@ -26,6 +26,23 @@ public class RSAText extends ATextCipher<KeyPair> {
 
     public PrivateKey getPrivateKey() {
         return priKey;
+    }
+
+    public void setPubKey(PublicKey pubKey) {
+        if (currentKeys == null) {
+            currentKeys = new KeyPair(pubKey, null);
+        } else {
+            currentKeys = new KeyPair(pubKey, currentKeys.getPrivate());
+        }
+    }
+
+    public void setPriKey(PrivateKey priKey) {
+        this.priKey = priKey;
+        if (currentKeys == null) {
+            currentKeys = new KeyPair(null, priKey);
+        } else {
+            currentKeys = new KeyPair(currentKeys.getPublic(), priKey);
+        }
     }
 
     public String getPublicKeyText() {
@@ -57,7 +74,6 @@ public class RSAText extends ATextCipher<KeyPair> {
 
             KeyPairGenerator generator = KeyPairGenerator.getInstance(RSA_TYPE);
 
-            // 2048 is enough for normal use
             generator.initialize(2048);
 
             currentKeys = generator.generateKeyPair();

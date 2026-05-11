@@ -13,7 +13,9 @@ public class AsymmetricTextPanel extends JPanel {
     public final JTextArea privateArea;
     private final TextController textController;
     private final JComboBox<String> algoCombo;
+
     private JButton genButton;
+    private JButton exportButton;
     private JButton copyPubButton;
     private JButton copyPriButton;
     private JButton importPubButton ;
@@ -81,6 +83,9 @@ public class AsymmetricTextPanel extends JPanel {
         genButton = createButton("Tạo cặp khóa", MainFrame.ACCENT);
         genButton.addActionListener(e -> textController.genKeyPair(publicArea, privateArea));
 
+        exportButton  = createButton("Xuất cặp khóa", MainFrame.ACCENT);
+        exportButton.addActionListener(e -> textController.exportKeyPair(publicArea, privateArea));
+
         copyPubButton = createButton("Copy Public", new Color(70, 70, 70));
         copyPubButton.addActionListener(e -> textController.copyKey(publicArea));
 
@@ -88,15 +93,17 @@ public class AsymmetricTextPanel extends JPanel {
         copyPriButton.addActionListener(e -> textController.copyKey(privateArea));
 
         importPubButton = createButton("Import Public", new Color(70, 70, 70));
-        importPubButton.addActionListener(e -> textController.importKey(publicArea));
+        importPubButton.addActionListener(e -> textController.importPublicKey(publicArea));
 
         importPriButton = createButton("Import Private", new Color(70, 70, 70));
-        importPriButton.addActionListener(e -> textController.importKey(privateArea));
+        importPriButton.addActionListener(e -> textController.importPrivateKey(privateArea));
 
         removeButton = createButton("Xóa khóa", Color.RED);
         removeButton.addActionListener(e -> textController.removeKeyArea(publicArea,privateArea));
 
         col.add(genButton);
+        col.add(Box.createVerticalStrut(8));
+        col.add(exportButton);
         col.add(Box.createVerticalStrut(8));
         col.add(copyPubButton);
         col.add(Box.createVerticalStrut(8));

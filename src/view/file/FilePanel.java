@@ -4,7 +4,7 @@ import controller.file.AsymmetricFileController;
 import controller.file.FileController;
 import controller.file.HashFileController;
 import controller.file.SymmetricFileController;
-import model.cipher.file.config.AsymmetricFiletConfig;
+import model.cipher.file.config.AsymmetricFileConfig;
 import view.MainFrame;
 
 import javax.swing.*;
@@ -66,7 +66,7 @@ public class FilePanel extends JPanel {
         encryptFileBtn.addActionListener(e -> {
             try {
                 if (fileSelectorPanel.isAsymmetricSelected()) {
-                    AsymmetricFiletConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
+                    AsymmetricFileConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
                     asymmetricFileController.encryptFileAsymmetric(config);
                 } else {
                     String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
@@ -87,7 +87,7 @@ public class FilePanel extends JPanel {
         decryptFileBtn.addActionListener(e -> {
             try {
                 if (fileSelectorPanel.isAsymmetricSelected()) {
-                    AsymmetricFiletConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
+                    AsymmetricFileConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
                     asymmetricFileController.decryptFileAsymmetric(config);
                 } else {
                     String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
