@@ -1,9 +1,9 @@
 package view.file;
 
-import controller.file.AsymmetricFileController;
+import controller.file.AsymFileController;
 import controller.file.FileController;
 import controller.file.HashFileController;
-import controller.file.SymmetricFileController;
+import controller.file.SymFileController;
 import model.cipher.file.config.AsymmetricFileConfig;
 import view.MainFrame;
 
@@ -23,23 +23,23 @@ public class FilePanel extends JPanel {
     public File selectedFile;
 
     FileController fileController;
-    SymmetricFileController symmetricFileController;
-    AsymmetricFileController asymmetricFileController;
+    SymFileController symFileController;
+    AsymFileController asymFileController;
     HashFileController hashFileController;
 
     public FileSelectorPanel fileSelectorPanel;
 
     public FilePanel(FileController fileController) {
         this.fileController = fileController;
-        this.symmetricFileController = fileController.getSymmetricController();
-        this.asymmetricFileController = fileController.getAsymmetricController();
+        this.symFileController = fileController.getSymmetricController();
+        this.asymFileController = fileController.getAsymmetricController();
         this.hashFileController = fileController.getHashController();
 
         setLayout(new BorderLayout(0, 16));
         setBackground(MainFrame.BG_PANEL);
         setBorder(new EmptyBorder(20, 16, 20, 16));
 
-        this.fileSelectorPanel = new FileSelectorPanel(fileController, symmetricFileController, asymmetricFileController, hashFileController);
+        this.fileSelectorPanel = new FileSelectorPanel(fileController, symFileController, asymFileController, hashFileController);
         fileController.setSymmetricPanel(fileSelectorPanel.symmetricPanel);
         fileController.setAsymmetricPanel(fileSelectorPanel.asymmetricPanel);
         fileController.setHashPanel(fileSelectorPanel.hashPanel);
@@ -67,11 +67,11 @@ public class FilePanel extends JPanel {
             try {
                 if (fileSelectorPanel.isAsymmetricSelected()) {
                     AsymmetricFileConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
-                    asymmetricFileController.encryptFileAsymmetric(config);
+                    asymFileController.encryptFileAsymmetric(config);
                 } else {
                     String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
 
-                    symmetricFileController.encryptFileSymmetric(
+                    symFileController.encryptFileSymmetric(
                             fileController.getSymCipher(algo),
                             fileSelectorPanel.getSelectedMode(),
                             fileSelectorPanel.getSelectedPadding(),
@@ -88,10 +88,10 @@ public class FilePanel extends JPanel {
             try {
                 if (fileSelectorPanel.isAsymmetricSelected()) {
                     AsymmetricFileConfig config = fileSelectorPanel.buildAsymmetricEncryptConfig(selectedFile);
-                    asymmetricFileController.decryptFileAsymmetric(config);
+                    asymFileController.decryptFileAsymmetric(config);
                 } else {
                     String algo = (String) fileSelectorPanel.algoCombo.getSelectedItem();
-                    symmetricFileController.decryptFileSymmetric(
+                    symFileController.decryptFileSymmetric(
                             fileController.getSymCipher(algo),
                             fileSelectorPanel.getSelectedMode(),
                             fileSelectorPanel.getSelectedPadding(),

@@ -22,8 +22,8 @@ import java.security.*;
 public class FileController {
     public final MainFrame view;
     // Controllers
-    private final SymmetricFileController symmetricController;
-    private final AsymmetricFileController asymmetricController;
+    private final SymFileController symmetricController;
+    private final AsymFileController asymmetricController;
     private final HashFileController hashController;
     public SecretKey currentKey;
     public PublicKey currentPublicKey;
@@ -34,8 +34,8 @@ public class FileController {
 
     public FileController(MainFrame view) {
         this.view = view;
-        this.symmetricController = new SymmetricFileController(this);
-        this.asymmetricController = new AsymmetricFileController(this);
+        this.symmetricController = new SymFileController(this);
+        this.asymmetricController = new AsymFileController(this);
         this.hashController = new HashFileController(this);
     }
 
@@ -49,11 +49,11 @@ public class FileController {
         return currentAsymCipher;
     }
 
-    public SymmetricFileController getSymmetricController() {
+    public SymFileController getSymmetricController() {
         return symmetricController;
     }
 
-    public AsymmetricFileController getAsymmetricController() {
+    public AsymFileController getAsymmetricController() {
         return asymmetricController;
     }
 

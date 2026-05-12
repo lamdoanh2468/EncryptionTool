@@ -104,7 +104,6 @@ public class TextSelectorPanel extends JPanel {
         return "Hàm Băm".equals(typeCombo.getSelectedItem());
     }
 
-    // Helper methods
     private JComboBox<String> createDropdown(String[] items) {
         JComboBox<String> cb = new JComboBox<>(items);
         cb.setFont(new Font("SansSerif", Font.PLAIN, 13));

@@ -1,8 +1,8 @@
 package view.file.asymmetric;
 
-import controller.file.AsymmetricFileController;
+import controller.file.AsymFileController;
 import controller.file.FileController;
-import controller.file.SymmetricFileController;
+import controller.file.SymFileController;
 import model.cipher.file.AFileAsymCipher;
 import model.cipher.file.AFileSymCipher;
 import model.cipher.file.config.AsymmetricFileConfig;
@@ -33,8 +33,8 @@ public class AsymmetricPanel extends JPanel {
     public final JTextArea publicKeyArea;
     public final JTextArea privateKeyArea;
     public final JTextArea symKeyArea;
-    private final AsymmetricFileController asymmetricFileController;
-    private final SymmetricFileController symmetricFileController;
+    private final AsymFileController asymFileController;
+    private final SymFileController symFileController;
     private final FileController fileController;
     public JButton genKeyPairButton;
     public JButton genSymKeyButton;
@@ -43,11 +43,11 @@ public class AsymmetricPanel extends JPanel {
     public JButton exportKeyPairButton;
     public JButton removeAllButton;
 
-    public AsymmetricPanel(FileController fileController, AsymmetricFileController asymmetricFileController
-            , SymmetricFileController symmetricFileController) {
+    public AsymmetricPanel(FileController fileController, AsymFileController asymFileController
+            , SymFileController symFileController) {
         this.fileController = fileController;
-        this.asymmetricFileController = asymmetricFileController;
-        this.symmetricFileController = symmetricFileController;
+        this.asymFileController = asymFileController;
+        this.symFileController = symFileController;
         setLayout(new BorderLayout(8, 12));
         setOpaque(false);
 
@@ -102,7 +102,7 @@ public class AsymmetricPanel extends JPanel {
 
         genKeyPairButton.addActionListener(e -> {
             try {
-                asymmetricFileController.genPairKey(
+                asymFileController.genPairKey(
                         (String) algoCombo.getSelectedItem(),
                         (Integer) asymKeySizeCombo.getSelectedItem(),
                         publicKeyArea,
@@ -114,7 +114,7 @@ public class AsymmetricPanel extends JPanel {
         });
         genSymKeyButton.addActionListener(e -> {
             try {
-                symmetricFileController.genKey(fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
+                symFileController.genKey(fileController.getSymCipher((String) symAlgoCombo.getSelectedItem()),
                         (Integer) symKeySizeCombo.getSelectedItem(), symKeyArea);
             } catch (NoSuchAlgorithmException | NoSuchProviderException ex) {
                 throw new RuntimeException(ex);
@@ -122,7 +122,7 @@ public class AsymmetricPanel extends JPanel {
         });
 
         importPublicKeyButton.addActionListener(e -> {
-            asymmetricFileController.importPublicKey(
+            asymFileController.importPublicKey(
                     fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                     publicKeyArea
             );
@@ -131,13 +131,13 @@ public class AsymmetricPanel extends JPanel {
             String algo = (String) algoCombo.getSelectedItem();
             AFileAsymCipher asymCipher = fileController.getAsymCipher(algo);
 
-            boolean success = asymmetricFileController.importPrivateKey(
+            boolean success = asymFileController.importPrivateKey(
                     asymCipher,
                     privateKeyArea
             );
             if (success) {
                 try {
-                    asymmetricFileController.setAsymmetricCipherInfo(this);
+                    asymFileController.setAsymmetricCipherInfo(this);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -146,7 +146,7 @@ public class AsymmetricPanel extends JPanel {
         });
         exportKeyPairButton.addActionListener(e -> {
             try {
-                asymmetricFileController.exportKeyPair(
+                asymFileController.exportKeyPair(
                         fileController.getAsymCipher((String) algoCombo.getSelectedItem()),
                         (String) asymModeCombo.getSelectedItem(),
                         (String) asymPaddingCombo.getSelectedItem()

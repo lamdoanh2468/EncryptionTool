@@ -1,7 +1,5 @@
 package controller.text;
 
-import model.cipher.file.AFileAsymCipher;
-import model.cipher.text.ATextCipher;
 import model.cipher.text.RSAText;
 import view.MainFrame;
 
@@ -17,14 +15,14 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class AsymmetricTextController {
+public class AsymTextController {
     private final MainFrame view;
     private final RSAText rsa = new RSAText();
 
     public PublicKey currentPublicKey;
     public PrivateKey currentPrivateKey;
 
-    public AsymmetricTextController(MainFrame view) {
+    public AsymTextController(MainFrame view) {
         this.view = view;
     }
 

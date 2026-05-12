@@ -18,12 +18,12 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 
-public class AsymmetricFileController {
+public class AsymFileController {
 
     private final FileController fileController;
     private AsymmetricPanel asymmetricPanel;
 
-    public AsymmetricFileController(FileController fileController) {
+    public AsymFileController(FileController fileController) {
         this.fileController = fileController;
     }
 

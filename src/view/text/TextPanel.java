@@ -88,7 +88,7 @@ public class TextPanel extends JPanel {
         ioRow.add(leftPanel, gbc);
 
         gbc.gridx = 1; gbc.weightx = 0; gbc.insets = new Insets(0,16,0,16);
-        ioRow.add(midPanel, gbc);                     // ← Đảm bảo có dòng này
+        ioRow.add(midPanel, gbc);
 
         gbc.gridx = 2; gbc.weightx = 0.45; gbc.insets = new Insets(0,0,0,0);
         ioRow.add(rightPanel, gbc);

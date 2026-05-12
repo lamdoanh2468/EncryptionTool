@@ -1,9 +1,9 @@
 package view.file;
 
-import controller.file.AsymmetricFileController;
+import controller.file.AsymFileController;
 import controller.file.FileController;
 import controller.file.HashFileController;
-import controller.file.SymmetricFileController;
+import controller.file.SymFileController;
 import model.cipher.file.config.AsymmetricFileConfig;
 import view.file.asymmetric.AsymmetricPanel;
 import view.file.hash.HashFilePanel;
@@ -42,8 +42,8 @@ public class FileSelectorPanel extends JPanel {
     private final CardLayout keyCardLayout = new CardLayout();
     private final JPanel keyCardPanel = new JPanel(keyCardLayout);
 
-    public FileSelectorPanel(FileController fileController, SymmetricFileController symmetricFileController,
-                             AsymmetricFileController asymmetricFileController, HashFileController hashController) {
+    public FileSelectorPanel(FileController fileController, SymFileController symFileController,
+                             AsymFileController asymFileController, HashFileController hashController) {
 
         this.fileController = fileController;
 
@@ -53,8 +53,8 @@ public class FileSelectorPanel extends JPanel {
         typeCombo = FilePanelUI.createDropdown(new String[]{"Đối xứng", "Bất đối xứng", "Hàm Băm"});
         algoCombo = FilePanelUI.createDropdown(SYMMETRIC_ALGOS);
 
-        symmetricPanel = new SymmetricPanel(fileController, symmetricFileController);
-        asymmetricPanel = new AsymmetricPanel(fileController, asymmetricFileController, symmetricFileController);
+        symmetricPanel = new SymmetricPanel(fileController, symFileController);
+        asymmetricPanel = new AsymmetricPanel(fileController, asymFileController, symFileController);
         hashPanel = new HashFilePanel(fileController, hashController);
 
         modeCombo = symmetricPanel.modeCombo;

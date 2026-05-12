@@ -9,14 +9,14 @@ public class TextController {
     private final MainFrame view;
 
     // Controllers
-    private final SymmetricTextController symmetricController;
-    private final AsymmetricTextController asymmetricController;
+    private final SymTextController symmetricController;
+    private final AsymTextController asymmetricController;
     private final HashTextController hashController;
 
     public TextController(MainFrame view) {
         this.view = view;
-        this.symmetricController = new SymmetricTextController(view);
-        this.asymmetricController = new AsymmetricTextController(view);
+        this.symmetricController = new SymTextController(view);
+        this.asymmetricController = new AsymTextController(view);
         this.hashController = new HashTextController(view);
     }
 

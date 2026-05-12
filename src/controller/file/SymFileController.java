@@ -19,12 +19,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Base64;
 
-public class SymmetricFileController {
+public class SymFileController {
 
     private final FileController fileController;
     private SymmetricPanel symmetricPanel;
 
-    public SymmetricFileController(FileController fileController) {
+    public SymFileController(FileController fileController) {
         this.fileController = fileController;
     }
 

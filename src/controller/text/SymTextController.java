@@ -8,10 +8,10 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.*;
 
-public class SymmetricTextController {
+public class SymTextController {
     private final MainFrame mainView;
 
-    public SymmetricTextController(MainFrame view) {
+    public SymTextController(MainFrame view) {
         this.mainView = view;
     }
 

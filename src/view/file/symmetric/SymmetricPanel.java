@@ -1,7 +1,7 @@
 package view.file.symmetric;
 
 import controller.file.FileController;
-import controller.file.SymmetricFileController;
+import controller.file.SymFileController;
 import model.cipher.file.AFileSymCipher;
 import view.MainFrame;
 import view.file.FilePanelUI;
@@ -26,13 +26,13 @@ public class SymmetricPanel extends JPanel {
     public final JButton exportButton;
     public final JButton removeKeyButton;
 
-    private final SymmetricFileController symmetricFileController;
+    private final SymFileController symFileController;
     private final FileController fileController;
     private final JLabel keyLabel;
 
-    public SymmetricPanel(FileController fileController, SymmetricFileController symmetricFileController) {
+    public SymmetricPanel(FileController fileController, SymFileController symFileController) {
         this.fileController = fileController;
-        this.symmetricFileController = symmetricFileController;
+        this.symFileController = symFileController;
 
         setLayout(new BorderLayout(8, 12));
         setOpaque(false);
@@ -108,7 +108,7 @@ public class SymmetricPanel extends JPanel {
             AFileSymCipher cipher = fileController.getSymCipher(algo);
             Integer keySize = (Integer) keySizeCombo.getSelectedItem();
             try {
-                symmetricFileController.genKey(cipher, keySize, keyArea);
+                symFileController.genKey(cipher, keySize, keyArea);
             } catch (NoSuchAlgorithmException | NoSuchProviderException ex) {
                 throw new RuntimeException(ex);
             }
@@ -119,10 +119,10 @@ public class SymmetricPanel extends JPanel {
         importButton.addActionListener(e -> {
             String algo = (String) algoCombo.getSelectedItem();
             AFileSymCipher cipher = fileController.getSymCipher(algo);
-            boolean success = symmetricFileController.importKey(cipher, keyArea);
+            boolean success = symFileController.importKey(cipher, keyArea);
             if (success) {
                 try {
-                    symmetricFileController.setSymmetricCipherInfo(this);
+                    symFileController.setSymmetricCipherInfo(this);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -133,7 +133,7 @@ public class SymmetricPanel extends JPanel {
             String algo = (String) algoCombo.getSelectedItem();
             AFileSymCipher cipher = fileController.getSymCipher(algo);
             try {
-                symmetricFileController.exportKey(cipher, getSelectedMode(), getSelectedPadding());
+                symFileController.exportKey(cipher, getSelectedMode(), getSelectedPadding());
             } catch (NoSuchAlgorithmException | IOException ex) {
                 throw new RuntimeException(ex);
             }
