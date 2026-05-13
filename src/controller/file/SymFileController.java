@@ -1,6 +1,7 @@
 package controller.file;
 
 import model.cipher.file.AFileSymCipher;
+import org.jetbrains.annotations.NotNull;
 import view.file.symmetric.SymmetricPanel;
 
 import javax.crypto.BadPaddingException;
@@ -72,40 +73,70 @@ public class SymFileController {
         return true;
     }
 
-    public void exportKey(AFileSymCipher symCipher, String mode, String padding) throws NoSuchAlgorithmException, IOException {
+    public void exportKey(AFileSymCipher symCipher, String mode, String padding)
+            throws NoSuchAlgorithmException, IOException {
+
         if (fileController.currentKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
+
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Chọn đường dẫn để lưu file chứa khoá");
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int userSelection = fileChooser.showSaveDialog(null);
+        fileChooser.setDialogTitle("Lưu file khóa đối xứng (Symmetric Key)");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
 
-        if (fileController.currentKey == null) {
-            JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        String algorithm = symCipher.getAlgorithm().toLowerCase();
+        String defaultName = algorithm + "_" + mode.toLowerCase() + "_" + padding.toLowerCase() + ".key";
+        // Ví dụ: aes_cbc_pkcs5padding.key
+        fileChooser.setSelectedFile(new File(defaultName));
+
+        int userSelection = fileChooser.showSaveDialog(null);
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
             return;
         }
 
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File selectedDir = fileChooser.getSelectedFile();
-            String dirPath = selectedDir.getAbsolutePath();
-            if (symCipher.getKey() == null) {
-                JOptionPane.showMessageDialog(null, "Chưa tạo cặp khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String keyFilePath = dirPath + File.separator + "symmetric.key";
-            String transFilePath = dirPath + File.separator + "sym_transformation.key";
+        File selectedFile = fileChooser.getSelectedFile();
+        String keyFilePath = selectedFile.getAbsolutePath();
 
-            symCipher.setMode(mode);
-            symCipher.setPadding(padding);
-            symCipher.exportKey(fileController.currentKey, keyFilePath);
-            symCipher.exportTransformation(symCipher.getTransformation(), transFilePath);
-            JOptionPane.showMessageDialog(null, "Lưu khóa vào file thành công");
+        File parentDir = selectedFile.getParentFile();
+        String fileName = selectedFile.getName();
 
-            fileController.updateStatus("Đã lưu khoá và thông tin thuật toán thành công, tiếp tục mã hóa hoặc giải mã");
-
+        String baseName = fileName;
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            baseName = fileName.substring(0, dotIndex);
         }
+
+        String transFileName = baseName + "_transformation.txt";
+        String transFilePath = new File(parentDir, transFileName).getAbsolutePath();
+
+        symCipher.setMode(mode);
+        symCipher.setPadding(padding);
+
+        symCipher.exportKey(fileController.currentKey, keyFilePath);
+        symCipher.exportTransformation(symCipher.getTransformation(), transFilePath);
+
+        JOptionPane.showMessageDialog(null,
+                "Lưu khóa thành công!\n\n" +
+                        "• File khóa        : " + selectedFile.getName() + "\n" +
+                        "• File transformation: " + transFileName,
+                "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+        fileController.updateStatus("Đã lưu khoá và thông tin thuật toán thành công");
+    }
+
+    @NotNull
+    private static JFileChooser getJFileChooser(AFileSymCipher symCipher) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file khóa đối xứng (Symmetric Key)");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+
+        String algorithm = symCipher.getAlgorithm().toLowerCase();
+        String defaultFileName = algorithm + "_symmetric.key";   // Ví dụ: aes_symmetric.key, des_symmetric.key, blowfish_symmetric.key...
+        fileChooser.setSelectedFile(new File(defaultFileName));
+        return fileChooser;
     }
 
     public void encryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile)

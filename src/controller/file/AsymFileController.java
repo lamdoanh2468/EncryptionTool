@@ -105,32 +105,58 @@ public class AsymFileController {
     }
 
     public void exportKeyPair(AFileAsymCipher asymCipher, String mode, String padding) throws IOException {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Chọn đường dẫn để lưu cặp khoá công khai và riêng tư");
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        int option = fileChooser.showSaveDialog(null);
-        if (option == JFileChooser.APPROVE_OPTION) {
-            File selectedDir = fileChooser.getSelectedFile();
-            String dirPath = selectedDir.getAbsolutePath();
-
-            if (asymCipher.getPrivateKey() == null || asymCipher.getPublicKeyString() == null) {
-                JOptionPane.showMessageDialog(null, "Chưa tạo cặp khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            asymCipher.exportPublicKey(asymCipher.getPublicKey(), dirPath + File.separator + "public.key");
-            asymCipher.exportPrivateKey(asymCipher.getPrivateKey(), dirPath + File.separator + "private.key");
-
-            asymCipher.setAsymMode(mode);
-            asymCipher.setAsymPadding(padding);
-            asymCipher.exportTransformation(asymCipher.getTransformation(), dirPath + File.separator + "asym_transformation.key");
+        if (asymCipher.getPrivateKey() == null || asymCipher.getPublicKeyString() == null) {
+            JOptionPane.showMessageDialog(null, "Chưa tạo cặp khoá", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu cặp khóa bất đối xứng");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+
+        String algorithm = asymCipher.getAsymAlgorithm().toLowerCase();
+        fileChooser.setSelectedFile(new File(algorithm + "_public.key"));
+
+        int option = fileChooser.showSaveDialog(null);
+        if (option != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = fileChooser.getSelectedFile();
+        String basePath = selectedFile.getParent();
+        String fileName = selectedFile.getName();
+
+        String baseName = fileName;
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            baseName = fileName.substring(0, dotIndex);
+        }
+
+        if (baseName.endsWith("_public")) {
+            baseName = baseName.substring(0, baseName.length() - 7);
+        } else if (baseName.endsWith("_private")) {
+            baseName = baseName.substring(0, baseName.length() - 8);
+        }
+
+        String publicKeyPath = basePath + File.separator + baseName + "_public.key";
+        String privateKeyPath = basePath + File.separator + baseName + "_private.key";
+        String transFilePath = basePath + File.separator + baseName + "_transformation.txt";
+
+        asymCipher.setAsymMode(mode);
+        asymCipher.setAsymPadding(padding);
+
+        asymCipher.exportPublicKey(asymCipher.getPublicKey(), publicKeyPath);
+        asymCipher.exportPrivateKey(asymCipher.getPrivateKey(), privateKeyPath);
+        asymCipher.exportTransformation(asymCipher.getTransformation(), transFilePath);
+
         JOptionPane.showMessageDialog(null,
-                "Xuất khoá thành công!\n• public.key\n• private.key\nTransformation: " + asymCipher.getTransformation(),
+                "Lưu cặp khóa thành công!\n\n" +
+                        "• Public key     : " + baseName + "_public.key\n" +
+                        "• Private key    : " + baseName + "_private.key\n" +
+                        "• Transformation : " + baseName + "_transformation.txt",
                 "Thành công", JOptionPane.INFORMATION_MESSAGE);
-        fileController.updateStatus("Đã lưu các khoá và thông tin thuật toán thành công, tiếp tục tạo khoá đối xứng ");
     }
 
     public void encryptFileAsymmetric(AsymmetricFileConfig config)
@@ -206,7 +232,7 @@ public class AsymFileController {
 
     public void setAsymmetricCipherInfo(AsymmetricPanel asymmetricPanel) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Chọn file có tên asym_transformation.key ở thư mục lưu khoá");
+        fileChooser.setDialogTitle("Chọn file chứa thông tin thuật toán ở thư mục lưu khoá");
         int option = fileChooser.showOpenDialog(null);
         if (option == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();

@@ -87,6 +87,7 @@ public class TextSelectorPanel extends JPanel {
 
     private void handleAlgorithmChange() {
         String algo = (String) algoCombo.getSelectedItem();
+        textController.clearAll();
         if (algo == null) return;
 
         if (isAsymmetricSelected()) {

@@ -4,6 +4,8 @@ import model.cipher.text.ATextCipher;
 import view.MainFrame;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 
 public class TextController {
     private final MainFrame view;
@@ -20,13 +22,20 @@ public class TextController {
         this.hashController = new HashTextController(view);
     }
 
+    public void copyResult(JTextArea keyArea) {
+        String result = keyArea.getText();
+
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(result), null);
+
+        JOptionPane.showMessageDialog(null, "Đã sao chép kết quả");
+    }
     // Symmetric
     public void importKey(JTextArea keyArea, JComboBox<String> algos) {
         symmetricController.importKey(keyArea, algos);
     }
 
-    public void exportKey(JTextArea keyArea, String ext) {
-        symmetricController.exportKey(keyArea, ext);
+    public void exportKey(String algorithm,JTextArea keyArea, String ext) {
+        symmetricController.exportKey(algorithm,keyArea, ext);
     }
 
     public void copyKey(JTextArea keyArea) {

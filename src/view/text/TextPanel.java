@@ -222,7 +222,7 @@ public class TextPanel extends JPanel {
 
         copyBtn = createButton("Sao chép kết quả", MainFrame.ACCENT);
         copyBtn.addActionListener(e -> {
-            textController.copyKey(outputArea);
+            textController.copyResult(outputArea);
         });
 
         clearBtn = createButton("Xóa tất cả", Color.RED);

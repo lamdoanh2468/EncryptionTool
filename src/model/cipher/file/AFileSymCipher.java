@@ -28,7 +28,7 @@ public abstract class AFileSymCipher implements IFileSymCipher {
     }
 
     public SecretKey getKey() {
-        return key;
+        return this.key;
     }
 
     public List<Integer> getKeySizes() {

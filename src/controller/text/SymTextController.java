@@ -46,7 +46,7 @@ public class SymTextController {
         }
     }
 
-    public void exportKey(JTextArea keyArea, String extension) {
+    public void exportKey(String algorithm,JTextArea keyArea, String extension) {
 
         String currentKey = keyArea.getText();
 
@@ -57,6 +57,7 @@ public class SymTextController {
 
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Lưu khóa");
+        chooser.setSelectedFile(new File(algorithm.toLowerCase()));
 
         int saveResult = chooser.showSaveDialog(mainView);
 
