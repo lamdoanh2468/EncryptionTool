@@ -22,20 +22,27 @@ public class Vigenere extends ATextCipher<String> {
     }
 
     @Override
-    public void loadKey(String key) {
-
-        this.savedKey = key;
-    }
-
-    @Override
     public String getKey() {
-
         return savedKey;
     }
 
     @Override
     public String parseKey(String keyString) {
+        if (keyString == null || keyString.isBlank()) {
+            throw new IllegalArgumentException("Key không được để trống");
+        }
+        String cleanedKey = keyString.replaceAll("[^A-Za-zÀ-ỹà-ỹ]", "").toUpperCase();
+        if (cleanedKey.isEmpty()) {
+            throw new IllegalArgumentException("Key phải chứa ít nhất một chữ cái");
+        }
+
+        this.savedKey = cleanedKey;
         return this.savedKey;
+    }
+
+    @Override
+    public void loadKey(String key) {
+        parseKey(key);                  // Tái sử dụng logic validate
     }
 
     // Encrypt
