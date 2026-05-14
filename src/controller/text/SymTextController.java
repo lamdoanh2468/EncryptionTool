@@ -1,6 +1,7 @@
 package controller.text;
 
-import model.cipher.text.*;
+import model.cipher.text.ATextCipher;
+import model.cipher.text.TextCipherFactory;
 import view.MainFrame;
 
 import javax.swing.*;
@@ -15,7 +16,7 @@ public class SymTextController {
         this.mainView = view;
     }
 
-    public void importKey(JTextArea keyArea,JComboBox<String>algos) {
+    public void importKey(JTextArea keyArea, JComboBox<String> algos) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Nhập khóa từ đường dẫn");
         int option = fileChooser.showOpenDialog(mainView);
@@ -46,7 +47,7 @@ public class SymTextController {
         }
     }
 
-    public void exportKey(String algorithm,JTextArea keyArea, String extension) {
+    public void exportKey(String algorithm, JTextArea keyArea, String extension) {
 
         String currentKey = keyArea.getText();
 
@@ -68,7 +69,7 @@ public class SymTextController {
         File saveFile = chooser.getSelectedFile();
 
         if (!saveFile.getName().toLowerCase().endsWith(extension)) {
-            saveFile = new File(saveFile.getAbsolutePath() + "." + extension);
+            saveFile = new File(saveFile.getAbsolutePath() + "_key" + "." + extension);
         }
 
         try {
@@ -242,6 +243,6 @@ public class SymTextController {
     }
 
     public ATextCipher<?> getCipher(String algoName) {
-       return TextCipherFactory.getCipher(algoName);
+        return TextCipherFactory.getCipher(algoName);
     }
 }

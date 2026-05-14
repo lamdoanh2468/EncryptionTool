@@ -16,8 +16,8 @@ public class HashTextPanel extends JPanel {
         hashInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JTextArea helpText = new JTextArea(
-                "- Ấn 'BĂM VĂN BẢN' để tạo mã băm mới.\n" +
-                        "- Dán mã băm vào ô 'Kết quả' rồi ấn 'KIỂM TRA' để kiểm tra khớp với văn bản gốc."
+                "- Ấn 'BĂM VĂN BẢN' để tạo mã băm mới."
+
         );
         helpText.setEditable(false);
         helpText.setOpaque(false);

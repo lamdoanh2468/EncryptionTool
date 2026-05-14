@@ -31,8 +31,7 @@ public class AsymFileController {
         this.asymmetricPanel = panel;
     }
 
-    public void genPairKey(String algorithm, int keySize, JTextArea pubKeyArea, JTextArea privKeyArea)
-            throws NoSuchAlgorithmException, IOException {
+    public void genPairKey(String algorithm, int keySize, JTextArea pubKeyArea, JTextArea privKeyArea) throws NoSuchAlgorithmException, IOException {
 
         AFileAsymCipher asymCipher = fileController.getAsymCipher(algorithm);
         asymCipher.genKeyPair(algorithm, keySize, "keypair");
@@ -112,37 +111,21 @@ public class AsymFileController {
         }
 
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Lưu cặp khóa bất đối xứng");
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setDialogTitle("Chọn thư mục để lưu cặp khóa");
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setAcceptAllFileFilterUsed(false);
-
-        String algorithm = asymCipher.getAsymAlgorithm().toLowerCase();
-        fileChooser.setSelectedFile(new File(algorithm + "_public.key"));
 
         int option = fileChooser.showSaveDialog(null);
         if (option != JFileChooser.APPROVE_OPTION) {
             return;
         }
 
-        File selectedFile = fileChooser.getSelectedFile();
-        String basePath = selectedFile.getParent();
-        String fileName = selectedFile.getName();
+        File selectedFolder = fileChooser.getSelectedFile();
+        String algorithm = asymCipher.getAsymAlgorithm().toLowerCase();
 
-        String baseName = fileName;
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex > 0) {
-            baseName = fileName.substring(0, dotIndex);
-        }
-
-        if (baseName.endsWith("_public")) {
-            baseName = baseName.substring(0, baseName.length() - 7);
-        } else if (baseName.endsWith("_private")) {
-            baseName = baseName.substring(0, baseName.length() - 8);
-        }
-
-        String publicKeyPath = basePath + File.separator + baseName + "_public.key";
-        String privateKeyPath = basePath + File.separator + baseName + "_private.key";
-        String transFilePath = basePath + File.separator + baseName + "_transformation.txt";
+        String publicKeyPath = new File(selectedFolder, algorithm + "_public.key").getAbsolutePath();
+        String privateKeyPath = new File(selectedFolder, algorithm + "_private.key").getAbsolutePath();
+        String transFilePath = new File(selectedFolder, algorithm + "_transformation.txt").getAbsolutePath();
 
         asymCipher.setAsymMode(mode);
         asymCipher.setAsymPadding(padding);
@@ -151,12 +134,7 @@ public class AsymFileController {
         asymCipher.exportPrivateKey(asymCipher.getPrivateKey(), privateKeyPath);
         asymCipher.exportTransformation(asymCipher.getTransformation(), transFilePath);
 
-        JOptionPane.showMessageDialog(null,
-                "Lưu cặp khóa thành công!\n\n" +
-                        "• Public key     : " + baseName + "_public.key\n" +
-                        "• Private key    : " + baseName + "_private.key\n" +
-                        "• Transformation : " + baseName + "_transformation.txt",
-                "Thành công", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, "Lưu cặp khóa thành công!\n\n" + "• Public key     : " + new File(publicKeyPath).getName() + "\n" + "• Private key    : " + new File(privateKeyPath).getName() + "\n" + "• Transformation : " + new File(transFilePath).getName() + "\n\n" + "Đã lưu tại: " + selectedFolder.getAbsolutePath(), "Thành công", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void encryptFileAsymmetric(AsymmetricFileConfig config)
@@ -172,11 +150,36 @@ public class AsymFileController {
             return;
         }
 
+        File selectedFile = config.getSelectedFile();
+
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu file mã hóa");
+
+        if (selectedFile.getParentFile() != null) {
+            fileChooser.setCurrentDirectory(selectedFile.getParentFile());
+        }
+
+        String suggestedName = getEncryptName(selectedFile.getName());
+        fileChooser.setSelectedFile(new File(suggestedName));
+
         int option = fileChooser.showSaveDialog(null);
+
         if (option == JFileChooser.APPROVE_OPTION) {
             File savedFile = fileChooser.getSelectedFile();
+
+            if (savedFile.exists()) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        null,
+                        "File \"" + savedFile.getName() + "\" đã tồn tại.\nBạn có muốn ghi đè không?",
+                        "Xác nhận ghi đè",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
             // Set asymmetric cipher
             config.getAsymCipher().setAsymMode(config.getAsymMode());
             config.getAsymCipher().setAsymPadding(config.getAsymPadding());
@@ -187,10 +190,12 @@ public class AsymFileController {
             config.getSymCipher().setMode(config.getSymMode());
             config.getSymCipher().setPadding(config.getSymPadding());
 
-            config.getAsymCipher().encryptFile(config.getSelectedFile().getAbsolutePath(), savedFile.getAbsolutePath());
-            JOptionPane.showMessageDialog(null, "Mã hóa file thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            config.getAsymCipher().encryptFile(selectedFile.getAbsolutePath(), savedFile.getAbsolutePath());
 
-            // Set key area and file path to default
+            JOptionPane.showMessageDialog(null,
+                    "Mã hóa file thành công\nFile đã lưu: " + savedFile.getAbsolutePath(),
+                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
             fileController.removeKeyArea(asymmetricPanel.publicKeyArea, asymmetricPanel.privateKeyArea, asymmetricPanel.symKeyArea);
             fileController.setFilePath("Chưa chọn file nào...");
             fileController.updateStatus("Mã hóa xong, bạn có thể tiếp tục với file khác");
@@ -213,20 +218,79 @@ public class AsymFileController {
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu file giải mã");
+
+        if (selectedFile.getParentFile() != null) {
+            fileChooser.setCurrentDirectory(selectedFile.getParentFile());
+        }
+
+        String suggestedName = getDecryptName(selectedFile.getName());
+        fileChooser.setSelectedFile(new File(suggestedName));
+
         int option = fileChooser.showSaveDialog(null);
+
         if (option == JFileChooser.APPROVE_OPTION) {
             File savedFile = fileChooser.getSelectedFile();
+
+            if (savedFile.exists()) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        null,
+                        "File \"" + savedFile.getName() + "\" đã tồn tại.\nBạn có muốn ghi đè không?",
+                        "Xác nhận ghi đè",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
 
             config.getAsymCipher().setAsymMode(config.getAsymMode());
             config.getAsymCipher().setAsymPadding(config.getAsymPadding());
             config.getAsymCipher().decryptFile(selectedFile.getAbsolutePath(), savedFile.getAbsolutePath());
 
-            JOptionPane.showMessageDialog(null, "Giải mã file thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Giải mã file thành công\nFile đã lưu: " + savedFile.getAbsolutePath(),
+                    "Thông báo", JOptionPane.INFORMATION_MESSAGE);
 
-            // Set key area and file path to default
             fileController.removeKeyArea(asymmetricPanel.publicKeyArea, asymmetricPanel.privateKeyArea, asymmetricPanel.symKeyArea);
             fileController.setFilePath("Chưa chọn file nào...");
             fileController.updateStatus("Giải mã xong, bạn có thể tiếp tục với file khác");
+        }
+    }
+
+    private String getEncryptName(String originalName) {
+        int dotIndex = originalName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            String name = originalName.substring(0, dotIndex);
+            String ext = originalName.substring(dotIndex);
+            return name + "_enc" + ext;
+        } else {
+            return originalName + "_enc";
+        }
+    }
+
+    private String getDecryptName(String originalName) {
+        int dotIndex = originalName.lastIndexOf('.');
+
+        if (dotIndex > 0) {
+            String name = originalName.substring(0, dotIndex);
+            String ext = originalName.substring(dotIndex);
+
+            if (name.endsWith("_enc")) {
+                return name.substring(0, name.length() - 4) + ext;
+            } else if (name.endsWith("_dec")) {
+                return name.substring(0, name.length() - 4) + ext;
+            } else {
+                return name + "_dec" + ext;
+            }
+        } else {
+            if (originalName.endsWith("_enc")) {
+                return originalName.substring(0, originalName.length() - 4);
+            } else if (originalName.endsWith("_dec")) {
+                return originalName.substring(0, originalName.length() - 4);
+            } else {
+                return originalName + "_dec";
+            }
         }
     }
 

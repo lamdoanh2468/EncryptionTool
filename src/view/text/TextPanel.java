@@ -84,13 +84,19 @@ public class TextPanel extends JPanel {
         rightPanel.setMinimumSize(new Dimension(300, 280));
 
         // Grid
-        gbc.gridx = 0; gbc.weightx = 0.45; gbc.insets = new Insets(0,0,0,0);
+        gbc.gridx = 0;
+        gbc.weightx = 0.45;
+        gbc.insets = new Insets(0, 0, 0, 0);
         ioRow.add(leftPanel, gbc);
 
-        gbc.gridx = 1; gbc.weightx = 0; gbc.insets = new Insets(0,16,0,16);
+        gbc.gridx = 1;
+        gbc.weightx = 0;
+        gbc.insets = new Insets(0, 16, 0, 16);
         ioRow.add(midPanel, gbc);
 
-        gbc.gridx = 2; gbc.weightx = 0.45; gbc.insets = new Insets(0,0,0,0);
+        gbc.gridx = 2;
+        gbc.weightx = 0.45;
+        gbc.insets = new Insets(0, 0, 0, 0);
         ioRow.add(rightPanel, gbc);
 
         add(ioRow, BorderLayout.CENTER);
@@ -141,12 +147,10 @@ public class TextPanel extends JPanel {
                 String text = inputArea.getText();
                 String algo = (String) selectorPanel.algoCombo.getSelectedItem();
                 textController.hashText(algo, text, outputArea);
-            }
-            else if (type.equals("Bất đối xứng")){
+            } else if (type.equals("Bất đối xứng")) {
                 String text = inputArea.getText();
                 textController.encryptRSA(text, selectorPanel.asymmetricPanel.publicArea, outputArea);
-            }
-            else {
+            } else {
                 String key = selectorPanel.symmetricPanel.keyArea.getText();
                 String text = inputArea.getText();
                 String algo = (String) selectorPanel.algoCombo.getSelectedItem();
@@ -164,8 +168,7 @@ public class TextPanel extends JPanel {
             } else if (type.equals("Bất đối xứng")) {
                 String text = inputArea.getText();
                 textController.decryptRSA(text, selectorPanel.asymmetricPanel.privateArea, outputArea);
-            }
-            else {
+            } else {
                 String key = selectorPanel.symmetricPanel.keyArea.getText();
                 String text = inputArea.getText();
                 String algo = (String) selectorPanel.algoCombo.getSelectedItem();
@@ -222,7 +225,11 @@ public class TextPanel extends JPanel {
 
         copyBtn = createButton("Sao chép kết quả", MainFrame.ACCENT);
         copyBtn.addActionListener(e -> {
-            textController.copyResult(outputArea);
+            if (!outputArea.getText().isEmpty())
+                textController.copyResult(outputArea);
+            else
+                JOptionPane.showMessageDialog(null,"Kết quả đang bị trống","Lỗi", JOptionPane.ERROR_MESSAGE);
+
         });
 
         clearBtn = createButton("Xóa tất cả", Color.RED);

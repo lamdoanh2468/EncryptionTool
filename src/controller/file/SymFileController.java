@@ -1,7 +1,6 @@
 package controller.file;
 
 import model.cipher.file.AFileSymCipher;
-import org.jetbrains.annotations.NotNull;
 import view.file.symmetric.SymmetricPanel;
 
 import javax.crypto.BadPaddingException;
@@ -73,8 +72,7 @@ public class SymFileController {
         return true;
     }
 
-    public void exportKey(AFileSymCipher symCipher, String mode, String padding)
-            throws NoSuchAlgorithmException, IOException {
+    public void exportKey(AFileSymCipher symCipher, String mode, String padding) throws NoSuchAlgorithmException, IOException {
 
         if (fileController.currentKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -117,31 +115,12 @@ public class SymFileController {
         symCipher.exportKey(fileController.currentKey, keyFilePath);
         symCipher.exportTransformation(symCipher.getTransformation(), transFilePath);
 
-        JOptionPane.showMessageDialog(null,
-                "Lưu khóa thành công!\n\n" +
-                        "• File khóa        : " + selectedFile.getName() + "\n" +
-                        "• File transformation: " + transFileName,
-                "Thành công", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, "Lưu khóa thành công!\n\n" + "• File khóa        : " + selectedFile.getName() + "\n" + "• File transformation: " + transFileName, "Thành công", JOptionPane.INFORMATION_MESSAGE);
 
         fileController.updateStatus("Đã lưu khoá và thông tin thuật toán thành công");
     }
 
-    @NotNull
-    private static JFileChooser getJFileChooser(AFileSymCipher symCipher) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Lưu file khóa đối xứng (Symmetric Key)");
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setAcceptAllFileFilterUsed(false);
-
-        String algorithm = symCipher.getAlgorithm().toLowerCase();
-        String defaultFileName = algorithm + "_symmetric.key";   // Ví dụ: aes_symmetric.key, des_symmetric.key, blowfish_symmetric.key...
-        fileChooser.setSelectedFile(new File(defaultFileName));
-        return fileChooser;
-    }
-
-    public void encryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile)
-            throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException,
-            IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
+    public void encryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
 
         if (fileController.currentKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -154,24 +133,41 @@ public class SymFileController {
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu file mã hóa");
+
+        if (selectedFile.getParentFile() != null) {
+            fileChooser.setCurrentDirectory(selectedFile.getParentFile());
+        }
+
+        String originalName = selectedFile.getName();
+        String suggestedName = getEncryptName(originalName);
+        fileChooser.setSelectedFile(new File(suggestedName));
+
         int option = fileChooser.showSaveDialog(null);
+
         if (option == JFileChooser.APPROVE_OPTION) {
             File savedFile = fileChooser.getSelectedFile();
+
+            if (savedFile.exists()) {
+                int confirm = JOptionPane.showConfirmDialog(null, "File \"" + savedFile.getName() + "\" đã tồn tại.\nBạn có muốn ghi đè không?", "Xác nhận ghi đè", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
             cipher.loadKey(fileController.currentKey);
             cipher.setMode(mode);
             cipher.setPadding(padding);
             cipher.encryptFile(selectedFile.getAbsolutePath(), savedFile.getAbsolutePath());
-            JOptionPane.showMessageDialog(null, "Mã hóa file thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            // Set key areas and file path to default
+
+            JOptionPane.showMessageDialog(null, "Mã hóa file thành công\nFile đã lưu: " + savedFile.getAbsolutePath(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
             fileController.removeKeyArea(symmetricPanel.keyArea);
             fileController.setFilePath("Chưa chọn file nào...");
             fileController.updateStatus("Mã hóa xong, bạn có thể tiếp tục với file khác");
         }
     }
 
-    public void decryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile)
-            throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
-            NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, NoSuchProviderException {
+    public void decryptFileSymmetric(AFileSymCipher cipher, String mode, String padding, File selectedFile) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, IOException, BadPaddingException, InvalidKeyException, NoSuchProviderException {
 
         if (fileController.currentKey == null) {
             JOptionPane.showMessageDialog(null, "Người dùng chưa tạo khóa", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -184,20 +180,77 @@ public class SymFileController {
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Chọn đường dẫn để lưu file giải mã");
+
+        if (selectedFile.getParentFile() != null) {
+            fileChooser.setCurrentDirectory(selectedFile.getParentFile());
+        }
+
+        String originalName = selectedFile.getName();
+        String suggestedName = getDecryptName(originalName);   // ← Dùng hàm hỗ trợ
+        fileChooser.setSelectedFile(new File(suggestedName));
+
         int option = fileChooser.showSaveDialog(null);
+
         if (option == JFileChooser.APPROVE_OPTION) {
             File savedFile = fileChooser.getSelectedFile();
+
+            if (savedFile.exists()) {
+                int confirm = JOptionPane.showConfirmDialog(null, "File \"" + savedFile.getName() + "\" đã tồn tại.\nBạn có muốn ghi đè không?", "Xác nhận ghi đè", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
             cipher.loadKey(fileController.currentKey);
             cipher.setMode(mode);
             cipher.setPadding(padding);
             cipher.decryptFile(selectedFile.getAbsolutePath(), savedFile.getAbsolutePath());
-            JOptionPane.showMessageDialog(null, "Giải mã file thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            // Set key area and file path to default
+
+            JOptionPane.showMessageDialog(null, "Giải mã file thành công\nFile đã lưu: " + savedFile.getAbsolutePath(), "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
             fileController.removeKeyArea(symmetricPanel.keyArea);
             fileController.setFilePath("Chưa chọn file nào...");
             fileController.updateStatus("Giải mã xong, vui lòng kiểm tra file giải mã");
         }
     }
+
+    private String getEncryptName(String originalName) {
+        int dotIndex = originalName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            String nameWithoutExt = originalName.substring(0, dotIndex);
+            String extension = originalName.substring(dotIndex);
+            return nameWithoutExt + "_enc" + extension;
+        } else {
+            return originalName + "_enc";
+        }
+    }
+
+    private String getDecryptName(String originalName) {
+        int dotIndex = originalName.lastIndexOf('.');
+
+        if (dotIndex > 0) {
+            String nameWithoutExt = originalName.substring(0, dotIndex);
+            String extension = originalName.substring(dotIndex);
+
+            if (nameWithoutExt.endsWith("_enc")) {
+                return nameWithoutExt.substring(0, nameWithoutExt.length() - 4) + extension;
+            } else if (nameWithoutExt.endsWith("_dec")) {
+                return nameWithoutExt.substring(0, nameWithoutExt.length() - 4) + extension;
+            } else {
+                return nameWithoutExt + "_dec" + extension;
+            }
+        } else {
+            // Không có phần mở rộng
+            if (originalName.endsWith("_enc")) {
+                return originalName.substring(0, originalName.length() - 4);
+            } else if (originalName.endsWith("_dec")) {
+                return originalName.substring(0, originalName.length() - 4);
+            } else {
+                return originalName + "_dec";
+            }
+        }
+    }
+
 
     public void setSymmetricCipherInfo(SymmetricPanel symmetricPanel) throws IOException {
         JFileChooser fileChooser = new JFileChooser();
@@ -227,14 +280,18 @@ public class SymFileController {
 
     private int[] getExpectedLength(String algorithm) {
         switch (algorithm) {
-            case "AES", "Blowfish", "Camellia":
+            case "AES", "Blowfish", "Twofish", "Camellia":
                 return new int[]{16, 24, 32};
+
             case "DES":
                 return new int[]{8};
+
             case "DESede":
                 return new int[]{16, 24};
+
             case "RC5":
                 return new int[]{16};
+
             default:
                 throw new IllegalArgumentException("Không hỗ trợ thuật toán này: " + algorithm);
         }
