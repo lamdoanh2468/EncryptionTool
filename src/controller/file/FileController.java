@@ -65,6 +65,7 @@ public class FileController {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Chọn file để tiếp tục");
         int result = fc.showOpenDialog(view);
+
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fc.getSelectedFile();
             filePathLabel.setText(selectedFile.getAbsolutePath());
@@ -75,6 +76,10 @@ public class FileController {
             setCombosEnabled(true);
             return selectedFile;
         }
+        if (view.filePanel != null && view.filePanel.selectedFile != null) {
+            return view.filePanel.selectedFile;
+        }
+
         return null;
     }
 
@@ -225,9 +230,3 @@ public class FileController {
     }
 
 }
-
-
-
-
-
-
